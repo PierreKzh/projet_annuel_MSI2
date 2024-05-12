@@ -40,11 +40,7 @@ def process_row(row: pd.Series, root_folder: Path) -> None:
     row (pd.Series): The dataset row containing the data.
     root_folder (Path): The root directory for saving the image.
     """
-    # Check if 'attack_cat' column exists, if not use root_folder
-    if 'attack_cat' in row and pd.notna(row['attack_cat']):
-        folder_path: Path = root_folder / row['attack_cat']
-    else:
-        folder_path: Path = root_folder
+    folder_path: Path = root_folder
 
     # Ensure the directory exists
     folder_path.mkdir(parents=True, exist_ok=True)
@@ -67,8 +63,6 @@ def process_dataset(stage: str, clean: bool, path_data: str) -> None:
     img_folder: Path = Path(f"{path_data}/{stage}_img")
     df: pd.DataFrame = pd.read_csv(data)
 
-    if clean:
-        clean_directories(img_folder)
 
     # Prepare arguments for each task (translated comment)
     tasks: list = [(row, img_folder) for _, row in df.iterrows()]
@@ -86,61 +80,6 @@ def process_dataset(stage: str, clean: bool, path_data: str) -> None:
 
     pbar.close()
 
-def user_confirmation(stage: str) -> Tuple[bool, bool]:
-    """
-    Request user confirmation to generate images for a specific stage and whether to clean the directory.
-
-    Args:
-    stage (str): The stage of the dataset (e.g., 'test', 'train').
-
-    Returns:
-    Tuple[bool, bool]: A tuple containing the user's response to generate images and whether to clean the directory.
-    """
-    response: str = input(f"Do you want to generate images for {stage}? (yes/no): ").lower()
-    clean: bool = False
-    if response == "yes" or response == "y":
-        clean = input(f"Do you want to clean the {stage}_img folder first? (yes/no): ").lower() == "yes"
-    return response == "yes" or response == "y", clean
-
-def choose_directory(main_path) -> str:
-    """
-    Allows the user to choose a directory within a specified main path, recursing into subdirectories if no CSV files are found.
-    """
-    current_path = f"{main_path}/DATA"
-
-    while True:
-        try:
-            # List directories and files in the current path
-            entries = os.listdir(current_path)
-            directories = [entry for entry in entries if os.path.isdir(os.path.join(current_path, entry))]
-            files = [file for file in entries if file.endswith('.csv')]
-
-            if files:
-                # CSV files found, return the current path
-                return current_path
-            elif not directories:
-                # No more directories to explore
-                print("Reached a directory without CSV files and no further subdirectories.")
-                return None
-
-            # Show available directories
-            print("Available directories:")
-            for index, directory in enumerate(directories, 1):
-                print(f"{index}. {directory}")
-
-            # Ask for user selection
-            selected_index = int(input("Choose a directory (enter number): ")) - 1
-            if selected_index < 0 or selected_index >= len(directories):
-                print("Invalid selection. Try again.")
-                continue
-
-            # Update the current path based on the selection and recurse into it
-            current_path = os.path.join(current_path, directories[selected_index])
-
-        except Exception as e:
-            print(f"An error occurred: {e}")
-            return None
-
 def main() -> None:
     """
     Main function to process the dataset based on user inputs.
@@ -157,11 +96,11 @@ def main() -> None:
         if generate:
             stages[stage] = clean
 
-    start_time: float = time.time()
+    #start_time: float = time.time()
     for stage, clean in stages.items():
         process_dataset(stage, clean, path_data)
 
-    print(f"Processing completed in {time.time() - start_time:.2f} seconds.")
+    #print(f"Processing completed in {time.time() - start_time:.2f} seconds.")
 
 if __name__ == "__main__":
     main()
