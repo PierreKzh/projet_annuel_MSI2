@@ -2,9 +2,7 @@ import sqlite3
 import configparser
 import os
 
-
 output_db_file = ""
-
 
 def read_config_file():
     config_file = configparser.ConfigParser()
@@ -15,7 +13,6 @@ def read_config_file():
 
     config_file.read(config_file_path)
     output_db_file = config_file.get('INITIALISATION', 'OutputDBFile')
-
 
 def create_db():
     connection = sqlite3.connect(output_db_file)
@@ -45,7 +42,6 @@ def create_db():
 
     connection.commit()
     connection.close()
-
 
 if __name__ == "__main__":
     read_config_file()

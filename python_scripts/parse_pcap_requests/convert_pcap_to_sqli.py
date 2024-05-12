@@ -11,13 +11,11 @@ capture_pcap_mode = 0
 packets = 0
 db_dict = {"forward_packets_per_second": [], "backward_packets_per_second": [], "bytes_transferred_per_second": [], "separator_1": [], "source_port": [], "destination_port": [], "ip_length": [], "payload_length": [], "ip_ttl": [], "ip_tos": [], "tcp_data_offset": [], "tcp_flags": [], "separator_2": [], "payload_bytes": []}
 
-
 def load_pcap_file():
     global input_pcap_file
     global packets
 
     packets = rdpcap(input_pcap_file)
-
 
 def parse_flow_information():
     global capture_pcap_mode
@@ -47,7 +45,6 @@ def parse_flow_information():
         db_dict["backward_packets_per_second"].append(backward_packets_per_second)
         db_dict["bytes_transferred_per_second"].append(bytes_transferred_per_second)
 
-
 def parse_header_information(pkt):
     ip_length = pkt[IP].len
     ip_ttl = pkt[IP].ttl
@@ -67,7 +64,6 @@ def parse_header_information(pkt):
     db_dict["tcp_data_offset"].append(tcp_data_offset)
     db_dict["tcp_flags"].append(int(tcp_flags))
 
-
 def parse_payload_bytes(pkt):
     payload_bytes = ""
 
@@ -77,7 +73,6 @@ def parse_payload_bytes(pkt):
         payload_bytes += f"{str(byte)} "
 
     db_dict["payload_bytes"].append(payload_bytes)
-
 
 def write_dict_to_sqli():
     global output_db_file
@@ -115,7 +110,6 @@ def write_dict_to_sqli():
     connection.commit()
     connection.close()
 
-
 def read_config_file():
     config_file = configparser.ConfigParser()
     global output_db_file
@@ -133,13 +127,11 @@ def read_config_file():
     network_interface = config_file.get(section, 'NetworkInterface')
     capture_pcap_mode = int(config_file.get(section, 'CapturePCAPMode'))
 
-
 def sniff_network_interface():
     global network_interface
     global packets
 
     packets = sniff(iface=network_interface, timeout=1)
-
 
 def packets_processing():
     global packets
@@ -154,7 +146,6 @@ def packets_processing():
     parse_flow_information()
 
     write_dict_to_sqli()
-
 
 if __name__ == "__main__":
     read_config_file()
