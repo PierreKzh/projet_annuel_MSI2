@@ -40,7 +40,7 @@ def main() -> None:
     # SQL statements for creating tables
     sql_create_packet_informations_table: str = """
     CREATE TABLE IF NOT EXISTS Packet_Informations (
-        information_id INTEGER PRIMARY KEY,
+        information_id INTEGER PRIMARY KEY AUTOINCREMENT,
         timestamp_imput_in_db INTEGER,
         capture_interface_file TEXT,
         treatment_progress INTEGER DEFAULT 0
@@ -49,7 +49,7 @@ def main() -> None:
 
     sql_create_image_classification_table: str = """
     CREATE TABLE IF NOT EXISTS Image_Classification (
-        image_id INTEGER PRIMARY KEY,
+        image_id INTEGER PRIMARY KEY AUTOINCREMENT,
         information_id INTEGER,
         image_b64 TEXT,
         classification TEXT,
@@ -59,7 +59,7 @@ def main() -> None:
 
     sql_create_packet_data_table: str = """
     CREATE TABLE IF NOT EXISTS Packet_Data (
-        data_id INTEGER PRIMARY KEY,
+        data_id INTEGER PRIMARY KEY AUTOINCREMENT,
         information_id INTEGER,
         timestamp_capture_packet INTEGER,
         forward_packets_per_second INTEGER,
