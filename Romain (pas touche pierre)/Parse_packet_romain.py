@@ -3,13 +3,29 @@ import configparser
 import os
 import sqlite3
 
-
 output_db_file = ""
 input_pcap_file = ""
 network_interface = ""
 capture_pcap_mode = 0
 packets = 0
-db_dict = {"forward_packets_per_second": [], "backward_packets_per_second": [], "bytes_transferred_per_second": [], "separator_1": [], "source_port": [], "destination_port": [], "ip_length": [], "payload_length": [], "ip_ttl": [], "ip_tos": [], "tcp_data_offset": [], "tcp_flags": [], "separator_2": [], "payload_bytes": []}
+db_dict = {"forward_packets_per_second": int, "backward_packets_per_second": int, "bytes_transferred_per_second": int, "separator_1": int, "source_port": int, "destination_port": int, "ip_length": int, "payload_length": int, "ip_ttl": int, "ip_tos": int, "tcp_data_offset": int, "tcp_flags": int, "separator_2": int, "payload_bytes": int}
+
+def read_config_file():
+    config_file = configparser.ConfigParser()
+    global output_db_file
+    global input_pcap_file
+    global network_interface
+    global capture_pcap_mode
+
+    current_folder = os.path.dirname(os.path.abspath(__file__))
+    config_file_path = os.path.join(current_folder, "../file.conf")
+
+    config_file.read(config_file_path)
+    section = "PARSE_PCAP_REQUESTS"
+    output_db_file = config_file.get('INITIALISATION', 'OutputDBFile')
+    input_pcap_file = config_file.get(section, 'InputPCAPFile')
+    network_interface = config_file.get(section, 'NetworkInterface')
+    capture_pcap_mode = int(config_file.get(section, 'CapturePCAPMode'))
 
 def load_pcap_file():
     global input_pcap_file
@@ -28,7 +44,7 @@ def parse_flow_information():
         current_ip = get_if_addr(network_interface)
         for pkt in packets:
             if IP in pkt:
-                bytes_transferred_per_second += len(pkt)
+                bytes_transferred_per_second = len(pkt)
                 if pkt[IP].src == current_ip:
                     forward_packets_per_second += 1
                 elif pkt[IP].dst == current_ip:
@@ -38,11 +54,9 @@ def parse_flow_information():
         backward_packets_per_second = 1582
         bytes_transferred_per_second = 3542198
 
-    max_values = max(len(values) for values in db_dict.values())
-    for i in range(max_values):
-        db_dict["forward_packets_per_second"].append(forward_packets_per_second)
-        db_dict["backward_packets_per_second"].append(backward_packets_per_second)
-        db_dict["bytes_transferred_per_second"].append(bytes_transferred_per_second)
+    db_dict["forward_packets_per_second"].append(forward_packets_per_second)
+    db_dict["backward_packets_per_second"].append(backward_packets_per_second)
+    db_dict["bytes_transferred_per_second"].append(bytes_transferred_per_second)
 
 def parse_header_information(pkt):
     ip_length = pkt[IP].len
@@ -105,26 +119,10 @@ def write_dict_to_sqli():
     # Connect to db and execute sql payload
     connection = sqlite3.connect(output_db_file)
     c = connection.cursor()
+    print(f"alooo {sql_payload}")
     c.execute(sql_payload)
     connection.commit()
     connection.close()
-
-def read_config_file():
-    config_file = configparser.ConfigParser()
-    global output_db_file
-    global input_pcap_file
-    global network_interface
-    global capture_pcap_mode
-
-    current_folder = os.path.dirname(os.path.abspath(__file__))
-    config_file_path = os.path.join(current_folder, "../file.conf")
-
-    config_file.read(config_file_path)
-    section = "PARSE_PCAP_REQUESTS"
-    output_db_file = config_file.get('INITIALISATION', 'OutputDBFile')
-    input_pcap_file = config_file.get(section, 'InputPCAPFile')
-    network_interface = config_file.get(section, 'NetworkInterface')
-    capture_pcap_mode = int(config_file.get(section, 'CapturePCAPMode'))
 
 def sniff_network_interface():
     global network_interface
@@ -134,7 +132,6 @@ def sniff_network_interface():
 def packets_processing(packet):
     if IP in packet:
         if TCP in packet:
-
             db_dict["separator_1"].append(-1)
             parse_header_information(packet)
             db_dict["separator_2"].append(-1)
