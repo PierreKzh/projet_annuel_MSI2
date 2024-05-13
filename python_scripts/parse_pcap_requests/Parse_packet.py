@@ -14,7 +14,6 @@ db_dict = {"forward_packets_per_second": [], "backward_packets_per_second": [], 
 def load_pcap_file():
     global input_pcap_file
     global packets
-
     packets = rdpcap(input_pcap_file)
 
 def parse_flow_information():
@@ -66,7 +65,6 @@ def parse_header_information(pkt):
 
 def parse_payload_bytes(pkt):
     payload_bytes = ""
-
     payload = pkt[TCP].payload
 
     for byte in bytes(payload):
@@ -82,7 +80,7 @@ def write_dict_to_sqli():
     max_values = max(len(values) for values in db_dict.values())
     columns = list(db_dict.keys())
 
-    sql_payload += "INSERT INTO Packet_informations ("
+    sql_payload += "INSERT INTO Packet_Data ("
     for i, column_name in enumerate(columns):  # récupère les keys du dict
         if i < len(columns) - 1:  # si ce n'est pas le dernier
             sql_payload += f"{column_name},"
@@ -90,21 +88,23 @@ def write_dict_to_sqli():
             sql_payload += f"{column_name}) VALUES "
     for k in range(max_values):
         sql_payload += "("
-        for i, column in enumerate(columns):  # récupère les keys du dict
-            value = f"'{db_dict[column][k]}'"
-            if i < len(columns) - 1:  # si ce n'est pas le dernier
+        for i, column in enumerate(columns):
+            if k < len(db_dict[column]):  # Verify the existence of the index
+                value = f"'{db_dict[column][k]}'"
+            else:
+                value = "'NULL'"
+            if i < len(columns) - 1:
                 sql_payload += f"{value},"
             else:
                 sql_payload += f"{value}"
-        if k < max_values-1:
+        if k < max_values - 1:
             sql_payload += "),"
         else:
-            sql_payload += ")"
+            sql_payload += ");"  # Ensure the SQL statement is closed with a semicolon
 
     # Connect to db and execute sql payload
     connection = sqlite3.connect(output_db_file)
     c = connection.cursor()
-
     c.execute(sql_payload)
 
     connection.commit()
@@ -130,7 +130,6 @@ def read_config_file():
 def sniff_network_interface():
     global network_interface
     global packets
-
     packets = sniff(iface=network_interface, timeout=1)
 
 def packets_processing():
@@ -147,7 +146,7 @@ def packets_processing():
 
     write_dict_to_sqli()
 
-if __name__ == "__main__":
+def main():
     read_config_file()
 
     if capture_pcap_mode == 0:
@@ -157,3 +156,6 @@ if __name__ == "__main__":
     elif capture_pcap_mode == 1:
         load_pcap_file()
         packets_processing()
+
+if __name__ == "__main__":
+    main()
