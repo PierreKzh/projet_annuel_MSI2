@@ -24,6 +24,7 @@ def parse_flow_information():
     backward_packets_per_second = 0
     bytes_transferred_per_second = 0
 
+    # variables definition
     if capture_pcap_mode == 0:
         current_ip = get_if_addr(network_interface)
         for pkt in packets:
@@ -34,15 +35,18 @@ def parse_flow_information():
                 elif pkt[IP].dst == current_ip:
                     backward_packets_per_second += 1
     elif capture_pcap_mode == 1:
+        # fake values if file
         forward_packets_per_second = 1190
         backward_packets_per_second = 1582
         bytes_transferred_per_second = 3542198
 
-    max_values = max(len(values) for values in db_dict.values())
-    for i in range(max_values):
-        db_dict["forward_packets_per_second"].append(forward_packets_per_second)
-        db_dict["backward_packets_per_second"].append(backward_packets_per_second)
-        db_dict["bytes_transferred_per_second"].append(bytes_transferred_per_second)
+    # variables insertion
+    for pkt in packets:
+        if IP in pkt:
+            if TCP in pkt:
+                db_dict["forward_packets_per_second"].append(forward_packets_per_second)
+                db_dict["backward_packets_per_second"].append(backward_packets_per_second)
+                db_dict["bytes_transferred_per_second"].append(bytes_transferred_per_second)
 
 def parse_header_information(pkt):
     ip_length = pkt[IP].len
@@ -81,18 +85,15 @@ def write_dict_to_sqli():
     columns = list(db_dict.keys())
 
     sql_payload += "INSERT INTO Packet_Data ("
-    for i, column_name in enumerate(columns):  # récupère les keys du dict
-        if i < len(columns) - 1:  # si ce n'est pas le dernier
+    for i, column_name in enumerate(columns):  # get dict keys
+        if i < len(columns) - 1:  # if not the last
             sql_payload += f"{column_name},"
         else:
             sql_payload += f"{column_name}) VALUES "
     for k in range(max_values):
         sql_payload += "("
         for i, column in enumerate(columns):
-            if k < len(db_dict[column]):  # Verify the existence of the index
-                value = f"'{db_dict[column][k]}'"
-            else:
-                value = "'NULL'"
+            value = f"'{db_dict[column][k]}'"
             if i < len(columns) - 1:
                 sql_payload += f"{value},"
             else:
@@ -100,12 +101,17 @@ def write_dict_to_sqli():
         if k < max_values - 1:
             sql_payload += "),"
         else:
-            sql_payload += ");"  # Ensure the SQL statement is closed with a semicolon
+            sql_payload += ");"
 
     # Connect to db and execute sql payload
     connection = sqlite3.connect(output_db_file)
     c = connection.cursor()
-    c.execute(sql_payload)
+    
+    try:
+        c.execute(sql_payload)
+    except Exception as e:
+        print("Error during the sql execution:", e)
+        return 1
 
     connection.commit()
     connection.close()
