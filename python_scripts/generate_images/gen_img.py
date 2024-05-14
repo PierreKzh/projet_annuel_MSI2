@@ -12,25 +12,32 @@ import sqlite3
 from typing import Optional, Tuple, List
 import configparser
 
+# Path to the output database file
 output_db_file: str = ""
 
 def read_config_file() -> None:
-    """Read configuration from a file and update the global variable for database file path."""
+    """
+    Read configuration from a file and update the global variable for database file path.
+    """
     config_file = configparser.ConfigParser()
     global output_db_file
 
+    # Get the current folder and config file path
     current_folder: str = os.path.dirname(os.path.abspath(__file__))
     config_file_path: str = os.path.join(current_folder, "../file.conf")  # Define path to the config file
 
     config_file.read(config_file_path)
-    output_db_file = config_file.get('INITIALISATION', 'OutputDBFile')  # Read database file path from config
+    # Read database file path from config
+    output_db_file = config_file.get('INITIALISATION', 'OutputDBFile')
 
-def create_connection(db_file: str) -> Optional[sqlite3.Connection]:
-    """Create a connection to the SQLite database specified by db_file."""
+def create_connection() -> Optional[sqlite3.Connection]:
+    """
+    Create a connection to the SQLite database specified by output_db_file.
+    """
     connection: Optional[sqlite3.Connection] = None
     try:
-        connection = sqlite3.connect(db_file)
-        print("SQLite connection established to", db_file)
+        connection = sqlite3.connect(output_db_file)
+        print("SQLite connection established to", output_db_file)
     except sqlite3.Error as e:
         print(e)
     return connection
@@ -90,7 +97,7 @@ def process_data(packet_data: str, information_id: int) -> None:
     img: Image = Image.fromarray(image_data, 'L')
     img_base64: str = image_to_base64(img)
     
-    connection = create_connection(output_db_file)
+    connection = create_connection()
     if connection:
         cursor = connection.cursor()
         cursor.execute("""
@@ -104,7 +111,8 @@ def main() -> None:
     """
     Main function to process the dataset based on user inputs.
     """
-    
+    read_config_file()
+
     parser = argparse.ArgumentParser(description='Process packet data into an image and save to database.')
     parser.add_argument('data', type=str, help='The packet data string containing space-separated values.')
     parser.add_argument('information_id', type=int, help='The foreign key ID referencing the Packet_Informations table.')
@@ -114,7 +122,6 @@ def main() -> None:
     information_id = args.information_id
 
     process_data(packet_data, information_id)
-
 
 if __name__ == "__main__":
     main()
