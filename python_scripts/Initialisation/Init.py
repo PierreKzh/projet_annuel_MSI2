@@ -42,7 +42,7 @@ def main() -> None:
     CREATE TABLE IF NOT EXISTS Packet_Informations (
         packet_informations_id INTEGER PRIMARY KEY AUTOINCREMENT,
         packet_data_id INTEGER,
-        timestamp_imput_in_db INTEGER,
+        timestamp_input_in_db INTEGER,
         capture_interface_file TEXT,
         treatment_progress INTEGER DEFAULT 0,
         FOREIGN KEY(packet_data_id) REFERENCES Packet_Data(packet_data_id)

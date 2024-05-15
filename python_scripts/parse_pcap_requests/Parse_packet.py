@@ -10,7 +10,7 @@ network_interface = ""
 capture_pcap_mode = 0
 packets = 0
 packet_data_dict = {"forward_packets_per_second": [], "backward_packets_per_second": [], "bytes_transferred_per_second": [], "separator_1": [], "source_port": [], "destination_port": [], "ip_length": [], "payload_length": [], "ip_ttl": [], "ip_tos": [], "tcp_data_offset": [], "tcp_flags": [], "separator_2": [], "payload_bytes": []}
-packet_informations_dict = {"timestamp_input_in_db": [], "capture_interface_file": [], "treatment_progress": []}
+packet_informations_dict = {"timestamp_input_in_db": [], "capture_interface_file": []}
 
 def load_pcap_file():
     global input_pcap_file
@@ -95,7 +95,6 @@ def fill_packet_informations():
                     packet_informations_dict["capture_interface_file"].append(network_interface)
                 elif capture_pcap_mode == 1:
                     packet_informations_dict["capture_interface_file"].append(input_pcap_file)
-                packet_informations_dict["treatment_progress"].append("0")
 
 def create_sql_payload_from_dict(table_name, dict):
     sql_payload = ""
