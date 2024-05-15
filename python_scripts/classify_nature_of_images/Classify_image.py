@@ -89,16 +89,16 @@ def classify_image(model, img_array: np.ndarray) -> dict:
 
     return result
 
-def update_classification(connection: sqlite3.Connection, image_id: int, classification: str) -> None:
+def update_classification(connection: sqlite3.Connection, image_classification_id: int, classification: str) -> None:
     """Update the classification of an image in the database."""
     cursor = connection.cursor()
-    update_query = "UPDATE Image_Classification SET classification = ? WHERE image_id = ?"
+    update_query = "UPDATE Image_Classification SET classification = ? WHERE image_classification_id = ?"
     try:
-        cursor.execute(update_query, (classification, image_id))
+        cursor.execute(update_query, (classification, image_classification_id))
         connection.commit()
-        print(f"Updated image_id {image_id} with classification {classification}")
+        print(f"Updated image_classification_id {image_classification_id} with classification {classification}")
     except sqlite3.Error as e:
-        print(f"Error updating classification for image_id {image_id}: {e}")
+        print(f"Error updating classification for image_classification_id {image_classification_id}: {e}")
 
 def main() -> None:
     read_config_file()
@@ -108,7 +108,7 @@ def main() -> None:
     model = load_model(model_path)
     
     # SQL statement for querying all data from Image_Classification table
-    sql_query_packet_data: str = "SELECT image_id, image_b64 FROM Image_Classification;"
+    sql_query_packet_data: str = "SELECT image_classification_id, image_b64 FROM Image_Classification;"
     
     # Create a database connection
     connection: Optional[sqlite3.Connection] = create_connection(output_db_file)
@@ -117,13 +117,13 @@ def main() -> None:
     if connection:
         all_data: List[Tuple] = fetch_all_data(connection, sql_query_packet_data)
         for row in all_data:
-            image_id, base64_image = row  # Extract image_id and base64 string from tuple
+            image_classification_id, base64_image = row  # Extract image_classification_id and base64 string from tuple
             
             test_data = prepare_test_data(base64_image)
             result = classify_image(model, test_data)
 
             classification = result['prediction_result']
-            update_classification(connection, image_id, classification)
+            update_classification(connection, image_classification_id, classification)
 
 if __name__ == "__main__":
     main()

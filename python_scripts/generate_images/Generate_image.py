@@ -34,9 +34,8 @@ def create_connection() -> Optional[sqlite3.Connection]:
         print(e)
     return connection
 
-def fetch_all_data(connection: sqlite3.Connection, query: str) -> List[Tuple]:
+def fetch_all_data(cursor, query: str) -> List[Tuple]:
     """Fetch all rows from the database for the given query."""
-    cursor = connection.cursor()
     try:
         cursor.execute(query)
         rows: List[Tuple] = cursor.fetchall()
@@ -52,33 +51,39 @@ def image_to_base64(img: Image) -> str:
     return base64.b64encode(buffered.getvalue()).decode('utf-8')
 
 def convert_and_scale_values(values_str: str) -> np.ndarray:
-    """Convert a string of space-separated values into a scaled and normalized 23x23 numpy array."""
-    elements: np.ndarray = np.genfromtxt(values_str.split(), dtype=float)
-    if elements.size == 0:
-        raise ValueError("No valid data found in the input string.")
-    
+    """
+    Convert a string of space-separated values into a scaled and normalized 23x23 numpy array.
+
+    Args:
+    values_str (str): The input string containing space-separated values.
+
+    Returns:
+    np.ndarray: A 23x23 numpy array of the processed values.
+    """
+    elements: np.ndarray = np.fromstring(values_str, sep=' ')
     min_val: float = elements.min()
+    # Shift values if the minimum is less than or equal to 0
     shift: float = 1 - min_val if min_val <= 0 else 0
-    shifted_values: np.ndarray = elements + shift + 1e-10  # Adding a small value to ensure positivity
+    shifted_values: np.ndarray = elements + shift
+    # Compress values using logarithm
     compressed_values: np.ndarray = np.log1p(shifted_values)
+    # Normalize values to the 0-255 range
     min_val, max_val = compressed_values.min(), compressed_values.max()
     normalized_values: np.ndarray = np.uint8(
         255 * (compressed_values - min_val) / (max_val - min_val) if max_val > min_val else np.full_like(compressed_values, 128))
+    # Ensure the array is of size 529 (23x23) and reshape
     return np.pad(normalized_values, (0, max(0, 529 - normalized_values.size)), 'constant')[:529].reshape((23, 23))
 
-def process_data(packet_data: str, information_id: int, connection: Optional[sqlite3.Connection]) -> None:
+def process_data(packet_data: str, packet_informations_id: int, cursor) -> None:
     """Process a single packet data string and save it as an image in the database."""
     image_data: np.ndarray = convert_and_scale_values(packet_data)
     img: Image = Image.fromarray(image_data, 'L')
     img_base64: str = image_to_base64(img)
-    
-    if connection:
-        cursor = connection.cursor()
-        cursor.execute("""
-            INSERT INTO Image_Classification (information_id, image_b64, classification)
-            VALUES (?, ?, ?)
-            """, (information_id, img_base64, ''))
-        connection.commit()
+
+    cursor.execute("""
+        INSERT INTO Image_Classification (packet_informations_id, image_b64, classification)
+        VALUES (?, ?, ?)
+        """, (packet_informations_id, img_base64, ''))
 
 def main() -> None:
     """Main function to process packet data and generate images."""
@@ -91,17 +96,23 @@ def main() -> None:
     connection: Optional[sqlite3.Connection] = create_connection()
 
     # Fetch and process all data from Packet_Data if connection is successful
+    
+    packet_informations_id: int = 123456789  # Replace with actual information ID when available
+
     if connection:
-        all_data: List[Tuple] = fetch_all_data(connection, sql_query_packet_data)
+        cursor = connection.cursor()
+        all_data: List[Tuple] = fetch_all_data(cursor, sql_query_packet_data)
         for row in all_data:
-            processed_row: str = str(row).replace("'NULL'", "-1").replace(",", "").replace("(", "").replace(")", "").replace("None", "-1")
-            row_elements: List[str] = processed_row.split()
-            row_elements = row_elements[3:]  # Extract relevant elements
-            while len(row_elements) < 513:
-                row_elements.append('-1')
-            processed_data: str = " ".join(row_elements)
-            information_id: int = 123456789  # Replace with actual information ID if available
-            process_data(processed_data, information_id, connection)
+            processed_row: str = str(row).replace("'NULL'", "-1").replace(",", "").replace("(", "").replace(")", "").replace("None", "-1").replace(" '", "").replace("'", "")
+            processed_row: List[str] = processed_row.split()
+            processed_row = processed_row[2:]  # Extract relevant elements
+            while len(processed_row) < 513:
+                processed_row.append('-1')
+            if len(processed_row) > 513:
+                processed_row = processed_row[:513]
+            processed_row: str = " ".join(processed_row)
+            process_data(processed_row, packet_informations_id, cursor)
+            connection.commit()
     else:
         print("Error! Cannot create the database connection.")
 
