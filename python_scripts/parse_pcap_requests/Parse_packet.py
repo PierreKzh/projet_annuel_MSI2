@@ -74,6 +74,7 @@ def parse_payload_bytes(pkt):
 
     for byte in bytes(payload):
         payload_bytes += f"{str(byte)} "
+    payload_bytes = payload_bytes[:-1]
 
     packet_data_dict["payload_bytes"].append(payload_bytes)
 
