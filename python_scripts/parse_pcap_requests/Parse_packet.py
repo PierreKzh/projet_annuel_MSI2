@@ -2,14 +2,15 @@ from scapy.all import rdpcap, IP, TCP, sniff, get_if_addr
 import configparser
 import os
 import sqlite3
-
+from datetime import datetime
 
 output_db_file = ""
 input_pcap_file = ""
 network_interface = ""
 capture_pcap_mode = 0
 packets = 0
-db_dict = {"forward_packets_per_second": [], "backward_packets_per_second": [], "bytes_transferred_per_second": [], "separator_1": [], "source_port": [], "destination_port": [], "ip_length": [], "payload_length": [], "ip_ttl": [], "ip_tos": [], "tcp_data_offset": [], "tcp_flags": [], "separator_2": [], "payload_bytes": []}
+packet_data_dict = {"forward_packets_per_second": [], "backward_packets_per_second": [], "bytes_transferred_per_second": [], "separator_1": [], "source_port": [], "destination_port": [], "ip_length": [], "payload_length": [], "ip_ttl": [], "ip_tos": [], "tcp_data_offset": [], "tcp_flags": [], "separator_2": [], "payload_bytes": []}
+packet_informations_dict = {"timestamp_input_in_db": [], "capture_interface_file": [], "treatment_progress": []}
 
 def load_pcap_file():
     global input_pcap_file
@@ -44,9 +45,9 @@ def parse_flow_information():
     for pkt in packets:
         if IP in pkt:
             if TCP in pkt:
-                db_dict["forward_packets_per_second"].append(forward_packets_per_second)
-                db_dict["backward_packets_per_second"].append(backward_packets_per_second)
-                db_dict["bytes_transferred_per_second"].append(bytes_transferred_per_second)
+                packet_data_dict["forward_packets_per_second"].append(forward_packets_per_second)
+                packet_data_dict["backward_packets_per_second"].append(backward_packets_per_second)
+                packet_data_dict["bytes_transferred_per_second"].append(bytes_transferred_per_second)
 
 def parse_header_information(pkt):
     ip_length = pkt[IP].len
@@ -58,14 +59,14 @@ def parse_header_information(pkt):
     tcp_flags = pkt[TCP].flags
     payload_length = len(pkt[TCP].payload)
 
-    db_dict["source_port"].append(source_port)
-    db_dict["destination_port"].append(destination_port)
-    db_dict["ip_length"].append(ip_length)
-    db_dict["payload_length"].append(payload_length)
-    db_dict["ip_ttl"].append(ip_ttl)
-    db_dict["ip_tos"].append(ip_tos)
-    db_dict["tcp_data_offset"].append(tcp_data_offset)
-    db_dict["tcp_flags"].append(int(tcp_flags))
+    packet_data_dict["source_port"].append(source_port)
+    packet_data_dict["destination_port"].append(destination_port)
+    packet_data_dict["ip_length"].append(ip_length)
+    packet_data_dict["payload_length"].append(payload_length)
+    packet_data_dict["ip_ttl"].append(ip_ttl)
+    packet_data_dict["ip_tos"].append(ip_tos)
+    packet_data_dict["tcp_data_offset"].append(tcp_data_offset)
+    packet_data_dict["tcp_flags"].append(int(tcp_flags))
 
 def parse_payload_bytes(pkt):
     payload_bytes = ""
@@ -74,17 +75,35 @@ def parse_payload_bytes(pkt):
     for byte in bytes(payload):
         payload_bytes += f"{str(byte)} "
 
-    db_dict["payload_bytes"].append(payload_bytes)
+    packet_data_dict["payload_bytes"].append(payload_bytes)
 
-def write_dict_to_sqli():
-    global output_db_file
+def fill_packet_informations():
+    global packets
+    global capture_pcap_mode
+    global network_interface
+    global input_pcap_file
+
+    # Get current time
+    date_time_now = datetime.now()
+    formatted_date_time = date_time_now.strftime("%Y-%m-%d %H:%M:%S")
+
+    for packet in packets:
+        if IP in packet:
+            if TCP in packet:
+                packet_informations_dict["timestamp_input_in_db"].append(formatted_date_time)
+                if capture_pcap_mode == 0:
+                    packet_informations_dict["capture_interface_file"].append(network_interface)
+                elif capture_pcap_mode == 1:
+                    packet_informations_dict["capture_interface_file"].append(input_pcap_file)
+                packet_informations_dict["treatment_progress"].append("0")
+
+def create_sql_payload_from_dict(table_name, dict):
     sql_payload = ""
 
-    # Create sql payload
-    max_values = max(len(values) for values in db_dict.values())
-    columns = list(db_dict.keys())
+    max_values = max(len(values) for values in dict.values()) # get the maximum numbers of value from any columns in dict
+    columns = list(dict.keys())
 
-    sql_payload += "INSERT INTO Packet_Data ("
+    sql_payload += f"INSERT INTO {table_name} ("
     for i, column_name in enumerate(columns):  # get dict keys
         if i < len(columns) - 1:  # if not the last
             sql_payload += f"{column_name},"
@@ -93,7 +112,7 @@ def write_dict_to_sqli():
     for k in range(max_values):
         sql_payload += "("
         for i, column in enumerate(columns):
-            value = f"'{db_dict[column][k]}'"
+            value = f"'{dict[column][k]}'"
             if i < len(columns) - 1:
                 sql_payload += f"{value},"
             else:
@@ -101,14 +120,26 @@ def write_dict_to_sqli():
         if k < max_values - 1:
             sql_payload += "),"
         else:
-            sql_payload += ");"
+            sql_payload += "); "
+
+    return sql_payload
+
+def write_dict_to_sqli():
+    global output_db_file
+    sql_payload = ""
+
+    # Complete sql payload for Packet_Data table
+    sql_payload += create_sql_payload_from_dict("Packet_Data", packet_data_dict)
+
+    # Complete sql payload for Packet_Informations table
+    sql_payload += create_sql_payload_from_dict("Packet_informations", packet_informations_dict)
 
     # Connect to db and execute sql payload
     connection = sqlite3.connect(output_db_file)
     c = connection.cursor()
     
     try:
-        c.execute(sql_payload)
+        c.executescript(sql_payload)
     except Exception as e:
         print("Error during the sql execution:", e)
         return 1
@@ -138,19 +169,26 @@ def sniff_network_interface():
     global packets
     packets = sniff(iface=network_interface, timeout=1)
 
+def clear_dict(dict):
+    for table in dict.values():
+        table.clear()
+
 def packets_processing():
     global packets
 
     for packet in packets:
         if IP in packet:
             if TCP in packet:
-                db_dict["separator_1"].append(-1)
+                packet_data_dict["separator_1"].append(-1)
                 parse_header_information(packet)
-                db_dict["separator_2"].append(-1)
+                packet_data_dict["separator_2"].append(-1)
                 parse_payload_bytes(packet)
     parse_flow_information()
+    fill_packet_informations()
 
     write_dict_to_sqli()
+    clear_dict(packet_informations_dict)
+    clear_dict(packet_data_dict)
 
 def main():
     read_config_file()
