@@ -15,7 +15,12 @@ packet_informations_dict = {"timestamp_input_in_db": [], "capture_interface_file
 def load_pcap_file():
     global input_pcap_file
     global packets
-    packets = rdpcap(input_pcap_file)
+    
+    try:
+        packets = rdpcap(input_pcap_file)
+    except Exception as e:
+        print("Error during opening pcap file:", e)
+        return 1
 
 def parse_flow_information():
     global capture_pcap_mode
@@ -167,7 +172,12 @@ def read_config_file():
 def sniff_network_interface():
     global network_interface
     global packets
-    packets = sniff(iface=network_interface, timeout=1)
+    
+    try:
+        packets = sniff(iface=network_interface, timeout=1)
+    except Exception as e:
+        print("Error during :", e)
+        return 1
 
 def clear_dict(dict):
     for table in dict.values():
