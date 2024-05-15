@@ -55,6 +55,7 @@ def main() -> None:
         packet_informations_id INTEGER,
         image_b64 TEXT,
         classification TEXT,
+        classification_value TEXT,
         FOREIGN KEY(packet_informations_id) REFERENCES Packet_Informations(packet_informations_id)
     );
     """

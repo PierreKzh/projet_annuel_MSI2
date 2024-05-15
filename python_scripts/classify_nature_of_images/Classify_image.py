@@ -79,7 +79,7 @@ def prepare_test_data(base64_str: str) -> np.ndarray:
 
 def classify_image(model, img_array: np.ndarray) -> dict:
     # Perform predictions on the image
-    predictions = model.predict(img_array)
+    predictions = model.predict(img_array, verbose=0)
     prediction = predictions.flatten()[0]
 
     result = {
@@ -89,20 +89,20 @@ def classify_image(model, img_array: np.ndarray) -> dict:
 
     return result
 
-def update_classification(connection: sqlite3.Connection, image_classification_id: int, classification: str) -> None:
+def update_classification(connection: sqlite3.Connection, image_classification_id: int, classification: str, classification_value: str) -> None:
     """Update the classification of an image in the database."""
     cursor = connection.cursor()
-    update_query = "UPDATE Image_Classification SET classification = ? WHERE image_classification_id = ?"
+    update_query = "UPDATE Image_Classification SET classification = ?, classification_value = ? WHERE image_classification_id = ?"
     try:
-        cursor.execute(update_query, (classification, image_classification_id))
+        cursor.execute(update_query, (classification, classification_value, image_classification_id))
         connection.commit()
-        print(f"Updated image_classification_id {image_classification_id} with classification {classification}")
+        #print(f"Updated image_classification_id {image_classification_id} with classification {classification}")
     except sqlite3.Error as e:
         print(f"Error updating classification for image_classification_id {image_classification_id}: {e}")
 
 def main() -> None:
     read_config_file()
-    model_path = "models/model-006.keras"
+    model_path = "models/model-039.keras"
     
     # Load the model once outside of the loop
     model = load_model(model_path)
@@ -123,7 +123,8 @@ def main() -> None:
             result = classify_image(model, test_data)
 
             classification = result['prediction_result']
-            update_classification(connection, image_classification_id, classification)
+            classification_value = str(result['predicted_value'])
+            update_classification(connection, image_classification_id, classification, classification_value)
 
 if __name__ == "__main__":
     main()

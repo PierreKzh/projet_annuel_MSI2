@@ -26,17 +26,31 @@ def execute_python_script(path: str) -> int:
     return 0
 
 def main():
-    # Define the path to the initialisation script
+    print("init.py")
     init_script_path = r"python_scripts\Initialisation\init.py"
     exit_code = execute_python_script(init_script_path)
     if exit_code != 0:
         print(exit_code)
 
-    # Define the path to the parse PCAP requests script
+    print("Parse_packet.py")
     parse_script_path = r"python_scripts\parse_pcap_requests\Parse_packet.py"
     exit_code = execute_python_script(parse_script_path)
     if exit_code != 0:
         print(exit_code)
+
+    """print("Generate_image.py")
+    parse_script_path = r"python_scripts\generate_images\Generate_image.py"
+    exit_code = execute_python_script(parse_script_path)
+    if exit_code != 0:
+        print(exit_code)
+
+    print("Classify_image.py")
+    parse_script_path = r"python_scripts\classify_nature_of_images\Classify_image.py"
+    exit_code = execute_python_script(parse_script_path)
+    if exit_code != 0:
+        print(exit_code)"""
+    
+
 
 if __name__ == "__main__":
     main()
