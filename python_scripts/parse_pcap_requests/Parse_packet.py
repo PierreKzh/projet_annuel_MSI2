@@ -2,7 +2,7 @@ from scapy.all import rdpcap, IP, TCP, sniff, get_if_addr
 import configparser
 import os
 import sqlite3
-from datetime import datetime
+import time
 
 output_db_file = ""
 input_pcap_file = ""
@@ -90,13 +90,12 @@ def fill_packet_informations():
     global input_pcap_file
 
     # Get current time
-    date_time_now = datetime.now()
-    formatted_date_time = date_time_now.strftime("%Y-%m-%d %H:%M:%S")
+    timestamp_now = time.time()
 
     for packet in packets:
         if IP in packet:
             if TCP in packet:
-                packet_informations_dict["timestamp_input_in_db"].append(formatted_date_time)
+                packet_informations_dict["timestamp_input_in_db"].append(timestamp_now)
                 if capture_pcap_mode == 0:
                     packet_informations_dict["capture_interface_file"].append(network_interface)
                 elif capture_pcap_mode == 1:
