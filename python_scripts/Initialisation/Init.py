@@ -44,8 +44,8 @@ def main() -> None:
         packet_data_id INTEGER,
         timestamp_imput_in_db INTEGER,
         capture_interface_file TEXT,
-        treatment_progress INTEGER DEFAULT 0
-        FOREIGN KEY(packet_data_id) REFERENCES Packet_Informations(packet_data_id)
+        treatment_progress INTEGER DEFAULT 0,
+        FOREIGN KEY(packet_data_id) REFERENCES Packet_Data(packet_data_id)
     );
     """
 
@@ -76,7 +76,7 @@ def main() -> None:
         tcp_data_offset INTEGER,
         tcp_flags INTEGER,
         separator_2 INTEGER,
-        payload_bytes INTEGER,
+        payload_bytes INTEGER
     );
     """
 
