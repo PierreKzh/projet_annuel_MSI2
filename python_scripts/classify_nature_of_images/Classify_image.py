@@ -89,42 +89,51 @@ def classify_image(model, img_array: np.ndarray) -> dict:
 
     return result
 
-def update_classification(connection: sqlite3.Connection, image_classification_id: int, classification: str, classification_value: str) -> None:
+def update_classification(cursor, image_classification_id: int, classification: str, classification_value: str) -> None:
     """Update the classification of an image in the database."""
-    cursor = connection.cursor()
     update_query = "UPDATE Image_Classification SET classification = ?, classification_value = ? WHERE image_classification_id = ?"
     try:
         cursor.execute(update_query, (classification, classification_value, image_classification_id))
-        connection.commit()
-        #print(f"Updated image_classification_id {image_classification_id} with classification {classification}")
     except sqlite3.Error as e:
         print(f"Error updating classification for image_classification_id {image_classification_id}: {e}")
 
+def update_treatement_progress(cursor, packet_informations_id):
+    cursor.execute("""
+        UPDATE Packet_Informations
+        SET treatment_progress = ?
+        WHERE packet_informations_id = ?
+        """, (2, packet_informations_id))
+
 def main() -> None:
     read_config_file()
-    model_path = "models/model-039.keras"
+    model_path = "models/model-006.keras"
     
     # Load the model once outside of the loop
     model = load_model(model_path)
     
     # SQL statement for querying all data from Image_Classification table
-    sql_query_packet_data: str = "SELECT image_classification_id, image_b64 FROM Image_Classification;"
-    
+    sql_query_packet_data: str = "SELECT packet_informations_id, image_classification_id, image_b64 FROM Image_Classification WHERE packet_informations_id IN (SELECT packet_informations_id FROM Packet_Informations WHERE treatment_progress = 1 ORDER BY timestamp_input_in_db ASC LIMIT 10);"
     # Create a database connection
     connection: Optional[sqlite3.Connection] = create_connection(output_db_file)
+    cursor = connection.cursor()
 
     # Fetch and print all data from Image_Classification if connection is successful
     if connection:
-        all_data: List[Tuple] = fetch_all_data(connection, sql_query_packet_data)
-        for row in all_data:
-            image_classification_id, base64_image = row  # Extract image_classification_id and base64 string from tuple
-            
-            test_data = prepare_test_data(base64_image)
-            result = classify_image(model, test_data)
+        while True :
+            all_data: List[Tuple] = fetch_all_data(connection, sql_query_packet_data)
+            for row in all_data:
+                packet_informations_id, image_classification_id, base64_image = row  # Extract image_classification_id and base64 string from tuple
+                
+                test_data = prepare_test_data(base64_image)
+                result = classify_image(model, test_data)
 
-            classification = result['prediction_result']
-            classification_value = str(result['predicted_value'])
-            update_classification(connection, image_classification_id, classification, classification_value)
+                classification = result['prediction_result']
+                classification_value = str(result['predicted_value'])
+                update_classification(cursor, image_classification_id, classification, classification_value)
+                update_treatement_progress(cursor, packet_informations_id)
+                connection.commit()
+
+    connection.close()
 
 if __name__ == "__main__":
     main()
