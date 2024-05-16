@@ -201,8 +201,7 @@ def packets_processing():
                     parse_header_information(packet)
                     packet_data_dict["separator_2"].append(-1)
                     parse_payload_bytes(packet)
-                else:
-                    break
+
     parse_flow_information()
     fill_packet_informations()
     write_dict_to_sqli("Packet_Data", packet_data_dict)
