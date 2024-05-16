@@ -42,7 +42,6 @@ def execute_sql_query(cursor: sqlite3.Cursor, sql_payload: str) -> None:
         print("Error during the sql execution:", e)
         return 1
 
-
 def load_pcap_file() -> None:
     """
     Load list of packets from a pcap file
@@ -131,21 +130,22 @@ def parse_payload_bytes(pkt: Packet) -> None:
 
     packet_data_dict["payload_bytes"].append(payload_bytes)
 
-def fill_packet_informations() -> None:
+def fill_packet_informations(ids_table) -> None:
     """
     Fill the packet_informations_dict with the corrects fields
     """
     # Get current time
     timestamp_now = time.time()
 
-    for _ in range(valid_packets_counter):
+    for id in ids_table:
+        packet_informations_dict["packet_data_id"].append(id)
         packet_informations_dict["timestamp_input_in_db"].append(timestamp_now)
         if capture_pcap_mode == 0:
             packet_informations_dict["capture_interface_file"].append(network_interface)
         elif capture_pcap_mode == 1:
             packet_informations_dict["capture_interface_file"].append(input_pcap_file)
 
-def write_dict_to_sqli(table_name: str, table_dict: dict) -> None:
+def write_dict_to_sqli(table_name: str, table_dict: dict) -> list:
     """
     Create an 'insert into' sql query from fields in dict to specific sql table.
     Then execute the sql query to the db.
@@ -153,65 +153,42 @@ def write_dict_to_sqli(table_name: str, table_dict: dict) -> None:
     Args:
         table_name (str): Name of the sql table
         table_dict (dict): dict of sql table fields
+    
+    Returns:
+        ids (list): Table of ids from packets inserted in the db
     """
+    ids = []
+
+    # Connect to db and execute sql payload
+    connection = create_sql_connection()
+    cursor = connection.cursor()
+
     # Create sql query
     max_values = max(len(values) for values in table_dict.values()) # get the maximum numbers of value from any columns in dict
     columns = list(table_dict.keys())
-
-    sql_payload = f"INSERT INTO {table_name} ("
-    for i, column_name in enumerate(columns):  # get dict keys
-        if i < len(columns) - 1:  # if not the last
-            sql_payload += f"{column_name},"
-        else:
-            sql_payload += f"{column_name}) VALUES "
     for j in range(max_values):
+        sql_payload = f"INSERT INTO {table_name} ("
+        for i, column_name in enumerate(columns):  # get dict keys
+            if i < len(columns) - 1:  # if not the last
+                sql_payload += f"{column_name},"
+            else:
+                sql_payload += f"{column_name}) VALUES "
         sql_payload += "("
         for i, column in enumerate(columns):
             value = f"'{table_dict[column][j]}'"
             if i < len(columns) - 1:
                 sql_payload += f"{value},"
             else:
-                sql_payload += f"{value}"
-        if j < max_values - 1:
-            sql_payload += "),"
-        else:
-            sql_payload += ");"
-
-    # Connect to db and execute sql payload
-    connection = create_sql_connection()
-    cursor = connection.cursor()
-    
-    execute_sql_query(cursor, sql_payload)
+                sql_payload += f"{value});"
+        
+        execute_sql_query(cursor, sql_payload)
+        id = cursor.lastrowid
+        ids.append(id)
 
     connection.commit()
     connection.close()
 
-def get_packet_data_id_from_sqli() -> None:
-    """
-    Get and write ids in packet_informations_dict from packets added to the db.
-    """
-    # Connect to db and execute sql payload
-    connection = create_sql_connection()
-    cursor = connection.cursor()
-
-    # Create select sql payload
-    max_values = max(len(values) for values in packet_data_dict.values()) # get the maximum numbers of value from any columns in dict
-    columns = list(packet_data_dict.keys())
-    for j in range(max_values):
-        sql_payload = "SELECT packet_data_id FROM Packet_Data WHERE "
-        for i, column_name in enumerate(columns):  # get dict keys
-            sql_payload += f"{column_name} = '{packet_data_dict[column_name][j]}'"
-            if i < len(columns) - 1:  # if not the last
-                sql_payload += " and "
-            else:
-                sql_payload += ";"
-    
-        execute_sql_query(cursor, sql_payload) # can't get many responses from concatenate query if executescript used
-        id = cursor.fetchall()[0][0]
-        packet_informations_dict['packet_data_id'].append(id)
-
-    connection.commit()
-    connection.close()
+    return ids
 
 def read_config_file() -> None:
     """
@@ -267,7 +244,7 @@ def packets_processing() -> None:
     Parse and count valid packets following the network-packet-flow-header-payload dataset.
     first, parse header information and payload bytes because they need informations from packets.
     Second, parse flow information because it need to calculate an average from packets.
-    Third, parse packets informations because it need the same data for each packets.
+    Third, parse packets informations because it use the same data for each packets.
     Fill temp stockage dict from packets parsed.
     Write dict_data to the db then write dict_informations to the db to link both tables.
     """
@@ -280,19 +257,17 @@ def packets_processing() -> None:
     for packet in packets:
         if IP in packet:
             if TCP in packet:
-                if len(packet[TCP].payload) != 0:
-                    # filter valid packets
-                    valid_packets_counter += 1
-                    packet_data_dict["separator_1"].append(-1)
-                    parse_header_information(packet)
-                    packet_data_dict["separator_2"].append(-1)
-                    parse_payload_bytes(packet)
+                # filter valid packets
+                valid_packets_counter += 1
+                packet_data_dict["separator_1"].append(-1)
+                parse_header_information(packet)
+                packet_data_dict["separator_2"].append(-1)
+                parse_payload_bytes(packet)
 
     if valid_packets_counter != 0:
         parse_flow_information() # calculate an average from packets
-        fill_packet_informations() # same data for each packets
-        write_dict_to_sqli("Packet_Data", packet_data_dict)
-        get_packet_data_id_from_sqli()
+        ids = write_dict_to_sqli("Packet_Data", packet_data_dict)
+        fill_packet_informations(ids) # same data for each packets
         write_dict_to_sqli("Packet_Informations", packet_informations_dict)
 
 def main() -> None:
@@ -312,4 +287,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-# change get last id db
