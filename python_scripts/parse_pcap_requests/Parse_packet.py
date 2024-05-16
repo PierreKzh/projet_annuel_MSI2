@@ -1,4 +1,4 @@
-from scapy.all import rdpcap, IP, TCP, sniff, get_if_addr
+from scapy.all import rdpcap, IP, TCP, sniff, get_if_addr, PacketList, Packet
 import configparser
 import os
 import sqlite3
@@ -8,21 +8,58 @@ output_db_file = ""
 input_pcap_file = ""
 network_interface = ""
 capture_pcap_mode = 0
-packets = 0
+packets = PacketList()
 packet_data_dict = {"timestamp_capture_packet": [], "forward_packets_per_second": [], "backward_packets_per_second": [], "bytes_transferred_per_second": [], "separator_1": [], "source_port": [], "destination_port": [], "ip_length": [], "payload_length": [], "ip_ttl": [], "ip_tos": [], "tcp_data_offset": [], "tcp_flags": [], "separator_2": [], "payload_bytes": []}
 packet_informations_dict = {"packet_data_id": [], "timestamp_input_in_db": [], "capture_interface_file": []}
 valid_packets_counter = 0
 
-def load_pcap_file():
+def create_sql_connection() -> sqlite3.Connection:
+    """
+    Create a connection to the SQLite database specified by output_db_file.
+
+    Returns:
+        sql_connection (sqlite3.Connection): sql connection to the db
+    """
+    try:
+        sql_connection = sqlite3.connect(output_db_file)
+    except Exception as e:
+        print("Error connecting to the db", e)
+        return 1
+    
+    return sql_connection
+
+def execute_sql_query(cursor: sqlite3.Cursor, sql_payload: str) -> None:
+    """
+    Execute sql query from connection cursor and payload.
+
+    Args:
+        cursor (sqlite3.Cursor): sql cursor from connection
+        sql_payload (str): sql query to execute
+    """
+    try:
+        cursor.execute(sql_payload)
+    except Exception as e:
+        print("Error during the sql execution:", e)
+        return 1
+
+
+def load_pcap_file() -> None:
+    """
+    Load list of packets from a pcap file
+    """
     global packets
     
     try:
         packets = rdpcap(input_pcap_file)
     except Exception as e:
-        print("Error during opening pcap file:", e)
+        print("Error opening pcap file:", e)
         return 1
 
-def parse_flow_information():
+def parse_flow_information() -> None:
+    """
+    Parse the flow information category from packets following the network-packet-flow-header-payload dataset.
+    Then fill the packet_data_dict with the corrects fields.
+    """
     forward_packets_per_second = 0
     backward_packets_per_second = 0
     bytes_transferred_per_second = 0
@@ -49,7 +86,14 @@ def parse_flow_information():
         packet_data_dict["backward_packets_per_second"].append(backward_packets_per_second)
         packet_data_dict["bytes_transferred_per_second"].append(bytes_transferred_per_second)
 
-def parse_header_information(pkt):
+def parse_header_information(pkt: Packet) -> None:
+    """
+    Parse the header information category from packets following the network-packet-flow-header-payload dataset.
+    Then fill the packet_data_dict with the corrects fields.
+
+    Args:
+        pkt (Packet): TCP/IP packet to parse
+    """
     ip_length = pkt[IP].len
     ip_ttl = pkt[IP].ttl
     ip_tos = pkt[IP].tos
@@ -70,7 +114,14 @@ def parse_header_information(pkt):
     packet_data_dict["tcp_flags"].append(int(tcp_flags))
     packet_data_dict["timestamp_capture_packet"].append(timestamp)
 
-def parse_payload_bytes(pkt):
+def parse_payload_bytes(pkt: Packet) -> None:
+    """
+    Parse the payload bytes category from packets following the network-packet-flow-header-payload dataset.
+    Then fill the packet_data_dict with the corrects fields.
+
+    Args:
+        pkt (Packet): TCP/IP packet to parse
+    """
     payload_bytes = ""
     payload = pkt[TCP].payload
 
@@ -80,7 +131,10 @@ def parse_payload_bytes(pkt):
 
     packet_data_dict["payload_bytes"].append(payload_bytes)
 
-def fill_packet_informations():
+def fill_packet_informations() -> None:
+    """
+    Fill the packet_informations_dict with the corrects fields
+    """
     # Get current time
     timestamp_now = time.time()
 
@@ -91,9 +145,18 @@ def fill_packet_informations():
         elif capture_pcap_mode == 1:
             packet_informations_dict["capture_interface_file"].append(input_pcap_file)
 
-def create_insert_sql_payload_from_dict(table_name, dict):
-    max_values = max(len(values) for values in dict.values()) # get the maximum numbers of value from any columns in dict
-    columns = list(dict.keys())
+def write_dict_to_sqli(table_name: str, table_dict: dict) -> None:
+    """
+    Create an 'insert into' sql query from fields in dict to specific sql table.
+    Then execute the sql query to the db.
+
+    Args:
+        table_name (str): Name of the sql table
+        table_dict (dict): dict of sql table fields
+    """
+    # Create sql query
+    max_values = max(len(values) for values in table_dict.values()) # get the maximum numbers of value from any columns in dict
+    columns = list(table_dict.keys())
 
     sql_payload = f"INSERT INTO {table_name} ("
     for i, column_name in enumerate(columns):  # get dict keys
@@ -101,96 +164,113 @@ def create_insert_sql_payload_from_dict(table_name, dict):
             sql_payload += f"{column_name},"
         else:
             sql_payload += f"{column_name}) VALUES "
-    for k in range(max_values):
+    for j in range(max_values):
         sql_payload += "("
         for i, column in enumerate(columns):
-            value = f"'{dict[column][k]}'"
+            value = f"'{table_dict[column][j]}'"
             if i < len(columns) - 1:
                 sql_payload += f"{value},"
             else:
                 sql_payload += f"{value}"
-        if k < max_values - 1:
+        if j < max_values - 1:
             sql_payload += "),"
         else:
             sql_payload += ");"
 
-    return sql_payload
-
-def write_dict_to_sqli(table_name, dict):
-    sql_payload = create_insert_sql_payload_from_dict(table_name, dict)
-
     # Connect to db and execute sql payload
-    connection = sqlite3.connect(output_db_file)
-    c = connection.cursor()
+    connection = create_sql_connection()
+    cursor = connection.cursor()
     
-    try:
-        c.executescript(sql_payload)
-    except Exception as e:
-        print("Error during the sql execution script:", e)
-        return 1
+    execute_sql_query(cursor, sql_payload)
 
     connection.commit()
     connection.close()
 
-def get_packet_data_id_from_sqli():
+def get_packet_data_id_from_sqli() -> None:
+    """
+    Get and write ids in packet_informations_dict from packets added to the db.
+    """
     # Connect to db and execute sql payload
-    connection = sqlite3.connect(output_db_file)
-    c = connection.cursor()
+    connection = create_sql_connection()
+    cursor = connection.cursor()
 
     # Create select sql payload
     max_values = max(len(values) for values in packet_data_dict.values()) # get the maximum numbers of value from any columns in dict
     columns = list(packet_data_dict.keys())
-    for k in range(max_values):
+    for j in range(max_values):
         sql_payload = "SELECT packet_data_id FROM Packet_Data WHERE "
         for i, column_name in enumerate(columns):  # get dict keys
-            sql_payload += f"{column_name} = '{packet_data_dict[column_name][k]}'"
+            sql_payload += f"{column_name} = '{packet_data_dict[column_name][j]}'"
             if i < len(columns) - 1:  # if not the last
                 sql_payload += " and "
             else:
                 sql_payload += ";"
     
-        try:
-            c.execute(sql_payload) # can't get many responses from concatenate query if executescript used
-        except Exception as e:
-            print("Error during the sql execution:", e)
-            return 1
-        id = c.fetchall()[0][0]
+        execute_sql_query(cursor, sql_payload) # can't get many responses from concatenate query if executescript used
+        id = cursor.fetchall()[0][0]
         packet_informations_dict['packet_data_id'].append(id)
 
     connection.commit()
     connection.close()
 
-def read_config_file():
-    config_file = configparser.ConfigParser()
+def read_config_file() -> None:
+    """
+    Read the config file and get variables.
+    """
     global output_db_file
     global input_pcap_file
     global network_interface
     global capture_pcap_mode
+    config_file = configparser.ConfigParser()
 
+    # Get config file path
     current_folder = os.path.dirname(os.path.abspath(__file__))
     config_file_path = os.path.join(current_folder, "../file.conf")
 
-    config_file.read(config_file_path)
+    # Get variables
+    try:
+        config_file.read(config_file_path)
+    except Exception as e:
+        print("Error reading config file:", e)
+        return 1
     section = "PARSE_PCAP_REQUESTS"
     output_db_file = config_file.get('INITIALISATION', 'OutputDBFile')
     input_pcap_file = config_file.get(section, 'InputPCAPFile')
     network_interface = config_file.get(section, 'NetworkInterface')
     capture_pcap_mode = int(config_file.get(section, 'CapturePCAPMode'))
 
-def sniff_network_interface():
+def sniff_network_interface() -> None:
+    """
+    Sniff network interface to fill packets list during one second.
+    """
     global packets
     
     try:
         packets = sniff(iface=network_interface, timeout=1)
     except Exception as e:
-        print("Error during :", e)
+        print("Error sniffing network:", e)
         return 1
 
-def clear_dict(dict):
-    for table in dict.values():
-        table.clear()
+def clear_dict(table_dict: dict) -> None:
+    """
+    Clear each tables in the fields of a dict.
 
-def packets_processing():
+    Args:
+        table_dict (dict): dict of sql table fields
+    """
+    for field in table_dict.values():
+        field.clear()
+
+def packets_processing() -> None:
+    """
+    Clear temp stockage dict.
+    Parse and count valid packets following the network-packet-flow-header-payload dataset.
+    first, parse header information and payload bytes because they need informations from packets.
+    Second, parse flow information because it need to calculate an average from packets.
+    Third, parse packets informations because it need the same data for each packets.
+    Fill temp stockage dict from packets parsed.
+    Write dict_data to the db then write dict_informations to the db to link both tables.
+    """
     global valid_packets_counter
 
     clear_dict(packet_informations_dict)
@@ -209,25 +289,27 @@ def packets_processing():
                     parse_payload_bytes(packet)
 
     if valid_packets_counter != 0:
-        parse_flow_information()
-        fill_packet_informations()
+        parse_flow_information() # calculate an average from packets
+        fill_packet_informations() # same data for each packets
         write_dict_to_sqli("Packet_Data", packet_data_dict)
         get_packet_data_id_from_sqli()
         write_dict_to_sqli("Packet_Informations", packet_informations_dict)
 
-def main():
+def main() -> None:
+    """
+    Start the program by chosing between reading a pcap file or listening on a network interface.
+    """
     read_config_file()
 
-    if capture_pcap_mode == 0:
+    if capture_pcap_mode == 0: # sniff network
         while True:
+            # loop each one second
             sniff_network_interface()
             packets_processing()
-    elif capture_pcap_mode == 1:
+    elif capture_pcap_mode == 1: # read pcap
         load_pcap_file()
         packets_processing()
 
 if __name__ == "__main__":
     main()
-# mettre les commentaires
-# corriger erreur : Error during the sql execution script: incomplete input
-# ajouter timestamp pcap
+# change get last id db
