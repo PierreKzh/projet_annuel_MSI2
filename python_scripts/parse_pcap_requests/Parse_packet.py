@@ -193,6 +193,10 @@ def clear_dict(dict):
 def packets_processing():
     global valid_packets_counter
 
+    clear_dict(packet_informations_dict)
+    clear_dict(packet_data_dict)
+    valid_packets_counter = 0
+
     for packet in packets:
         if IP in packet:
             if TCP in packet:
@@ -204,15 +208,12 @@ def packets_processing():
                     packet_data_dict["separator_2"].append(-1)
                     parse_payload_bytes(packet)
 
-    parse_flow_information()
-    fill_packet_informations()
-    write_dict_to_sqli("Packet_Data", packet_data_dict)
-    get_packet_data_id_from_sqli()
-    write_dict_to_sqli("Packet_Informations", packet_informations_dict)
-
-    clear_dict(packet_informations_dict)
-    clear_dict(packet_data_dict)
-    valid_packets_counter = 0
+    if valid_packets_counter != 0:
+        parse_flow_information()
+        fill_packet_informations()
+        write_dict_to_sqli("Packet_Data", packet_data_dict)
+        get_packet_data_id_from_sqli()
+        write_dict_to_sqli("Packet_Informations", packet_informations_dict)
 
 def main():
     read_config_file()
