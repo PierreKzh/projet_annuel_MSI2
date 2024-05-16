@@ -9,7 +9,7 @@ input_pcap_file = ""
 network_interface = ""
 capture_pcap_mode = 0
 packets = 0
-packet_data_dict = {"forward_packets_per_second": [], "backward_packets_per_second": [], "bytes_transferred_per_second": [], "separator_1": [], "source_port": [], "destination_port": [], "ip_length": [], "payload_length": [], "ip_ttl": [], "ip_tos": [], "tcp_data_offset": [], "tcp_flags": [], "separator_2": [], "payload_bytes": []}
+packet_data_dict = {"timestamp_capture_packet": [], "forward_packets_per_second": [], "backward_packets_per_second": [], "bytes_transferred_per_second": [], "separator_1": [], "source_port": [], "destination_port": [], "ip_length": [], "payload_length": [], "ip_ttl": [], "ip_tos": [], "tcp_data_offset": [], "tcp_flags": [], "separator_2": [], "payload_bytes": []}
 packet_informations_dict = {"packet_data_id": [], "timestamp_input_in_db": [], "capture_interface_file": []}
 valid_packets_counter = 0
 
@@ -58,6 +58,7 @@ def parse_header_information(pkt):
     tcp_data_offset = pkt[TCP].dataofs
     tcp_flags = pkt[TCP].flags
     payload_length = len(pkt[TCP].payload)
+    timestamp = pkt.time
 
     packet_data_dict["source_port"].append(source_port)
     packet_data_dict["destination_port"].append(destination_port)
@@ -67,6 +68,7 @@ def parse_header_information(pkt):
     packet_data_dict["ip_tos"].append(ip_tos)
     packet_data_dict["tcp_data_offset"].append(tcp_data_offset)
     packet_data_dict["tcp_flags"].append(int(tcp_flags))
+    packet_data_dict["timestamp_capture_packet"].append(timestamp)
 
 def parse_payload_bytes(pkt):
     payload_bytes = ""
