@@ -1,42 +1,19 @@
 import os
-import pandas as pd
 from tensorflow.keras.models import load_model  # type: ignore
 from tensorflow.keras.preprocessing.image import img_to_array  # type: ignore
 import sqlite3
-import configparser
 from typing import Optional, Tuple, List
-import base64
-from io import BytesIO
 from PIL import Image
 import numpy as np
+import sys
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from general_processing.read_config_file import *
+from general_processing.b64_image import *
+from general_processing.db_connection import *
 
 # Suppress TensorFlow warnings
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # 0 = all messages, 1 = no INFO, 2 = no INFO/WARNING, 3 = no INFO/WARNING/ERROR
-
-output_db_file: str = ""
-
-def read_config_file() -> None:
-    """Read configuration from a file and update the global variable for database file path."""
-    config: configparser.ConfigParser = configparser.ConfigParser()
-    global output_db_file
-
-    current_folder: str = os.path.dirname(os.path.abspath(__file__))
-    config_file_path: str = os.path.join(current_folder, "../file.conf")  # Define path to the config file
-
-    config.read(config_file_path)
-    output_db_code: str = 'INITIALISATION'  # Section for initialization settings in config
-    db_file_key: str = 'OutputDBFile'  # Key for database file configuration
-    output_db_file = config.get(output_db_code, db_file_key)  # Read database file path from config
-
-def create_connection(db_file: str) -> Optional[sqlite3.Connection]:
-    """Create a connection to the SQLite database specified by db_file."""
-    connection: Optional[sqlite3.Connection] = None
-    try:
-        connection = sqlite3.connect(db_file)
-        print("SQLite connection established to", db_file)
-    except sqlite3.Error as e:
-        print(e)
-    return connection
 
 def fetch_all_data(connection: sqlite3.Connection, query: str) -> List[Tuple]:
     """Fetch all rows from the database for the given query."""
@@ -49,42 +26,27 @@ def fetch_all_data(connection: sqlite3.Connection, query: str) -> List[Tuple]:
         print(e)
         return []
 
-def base64_to_image(base64_str: str) -> Image:
-    """
-    Convert a base64 string to a PIL Image.
-
-    Args:
-    base64_str (str): The base64 encoded string of the image.
-
-    Returns:
-    Image: The PIL Image object.
-    """
-    image_data = base64.b64decode(base64_str)
-    buffered = BytesIO(image_data)
-    img = Image.open(buffered)
-    return img
-
 def prepare_test_data(base64_str: str) -> np.ndarray:
-    img = base64_to_image(base64_str)
+    img: Image = base64_to_image(base64_str)
     img = img.resize((32, 32))
     
     # Convert image to RGB if it's not
     if img.mode != 'RGB':
         img = img.convert('RGB')
     
-    img_array = img_to_array(img)
+    img_array: np.ndarray = img_to_array(img)
     img_array = np.expand_dims(img_array, axis=0)  # Add batch dimension
     img_array = img_array / 255.0  # Normalize
     return img_array
 
-def classify_image(model, img_array: np.ndarray) -> dict:
+def classify_image(model, img_array: np.ndarray, normal_abnormal) -> dict:
     # Perform predictions on the image
-    predictions = model.predict(img_array, verbose=0)
-    prediction = predictions.flatten()[0]
+    predictions: np.ndarray = model.predict(img_array, verbose=0)
+    prediction: float = predictions.flatten()[0]
 
-    result = {
+    result: dict = {
         'predicted_value': prediction,
-        'prediction_result': 'Abnormal' if prediction > 0.5 else 'Normal'
+        'prediction_result': 'Abnormal' if prediction > normal_abnormal else 'Normal'
     }
 
     return result
@@ -105,19 +67,23 @@ def update_treatement_progress(cursor, packet_informations_id):
         """, (2, packet_informations_id))
 
 def main() -> None:
-    read_config_file()
-    model_path = "models/model-006.keras"
+    db_file = read_config_file("INITIALISATION", "OutputDBFile")
+    model_path = read_config_file("CLASSIFY_IMAGE", "ModelPath")
+    traitement_size_block = read_config_file("CLASSIFY_IMAGE", "TraitementSizeBlock")
+    normal_abnormal = read_config_file("CLASSIFY_IMAGE", "NormalAbnormal")
+    if '.' in normal_abnormal :
+        normal_abnormal = float(normal_abnormal)
+    else :
+        normal_abnormal = int(normal_abnormal)
+
+    model = load_model(model_path) # Load the model
     
-    # Load the model once outside of the loop
-    model = load_model(model_path)
+    # SQL statement for querying data from Image_Classification table
+    sql_query_packet_data: str = f"SELECT packet_informations_id, image_classification_id, image_b64 FROM Image_Classification WHERE packet_informations_id IN (SELECT packet_informations_id FROM Packet_Informations WHERE treatment_progress = 1 ORDER BY timestamp_input_in_db ASC LIMIT {traitement_size_block});"
     
-    # SQL statement for querying all data from Image_Classification table
-    sql_query_packet_data: str = "SELECT packet_informations_id, image_classification_id, image_b64 FROM Image_Classification WHERE packet_informations_id IN (SELECT packet_informations_id FROM Packet_Informations WHERE treatment_progress = 1 ORDER BY timestamp_input_in_db ASC LIMIT 10);"
-    # Create a database connection
-    connection: Optional[sqlite3.Connection] = create_connection(output_db_file)
+    connection: Optional[sqlite3.Connection] = create_connection(db_file) # Database connection
     cursor = connection.cursor()
 
-    # Fetch and print all data from Image_Classification if connection is successful
     if connection:
         while True :
             all_data: List[Tuple] = fetch_all_data(connection, sql_query_packet_data)
@@ -125,7 +91,7 @@ def main() -> None:
                 packet_informations_id, image_classification_id, base64_image = row  # Extract image_classification_id and base64 string from tuple
                 
                 test_data = prepare_test_data(base64_image)
-                result = classify_image(model, test_data)
+                result = classify_image(model, test_data, normal_abnormal)
 
                 classification = result['prediction_result']
                 classification_value = str(result['predicted_value'])

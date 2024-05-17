@@ -2,6 +2,7 @@ import subprocess
 import sys
 import threading
 import time
+import os
 
 def execute_python_script(path: str) -> int:
     """
@@ -41,6 +42,9 @@ def execute_with_delay(script_path: str, delay: int):
         print(exit_code)
 
 def main():
+    
+    os.remove("db.sqlite")
+
     print("init.py")
     init_script_path = r"python_scripts\Initialisation\init.py"
     exit_code = execute_python_script(init_script_path)

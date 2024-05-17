@@ -1,36 +1,14 @@
 import os
 import sqlite3
-import configparser
 import numpy as np
 from PIL import Image
-from io import BytesIO
-import base64
 from typing import Optional, Tuple, List
+import sys
 
-# Global variable for the database file path
-output_db_file: str = ""
-
-def read_config_file() -> None:
-    """Read configuration from a file and update the global variable for database file path."""
-    config = configparser.ConfigParser()
-    global output_db_file
-
-    current_folder = os.path.dirname(os.path.abspath(__file__))
-    config_file_path = os.path.join(current_folder, "../file.conf")  # Define path to the config file
-
-    config.read(config_file_path)
-    output_db_code = 'INITIALISATION'  # Section for initialization settings in config
-    db_file_key = 'OutputDBFile'  # Key for database file configuration
-    output_db_file = config.get(output_db_code, db_file_key)  # Read database file path from config
-
-def create_connection() -> Optional[sqlite3.Connection]:
-    """Create a connection to the SQLite database specified by output_db_file."""
-    connection: Optional[sqlite3.Connection] = None
-    try:
-        connection = sqlite3.connect(output_db_file)
-    except sqlite3.Error as e:
-        print(e)
-    return connection
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from general_processing.read_config_file import *
+from general_processing.b64_image import *
+from general_processing.db_connection import *
 
 def fetch_all_data(cursor, query: str) -> List[Tuple]:
     """Fetch all rows from the database for the given query."""
@@ -41,12 +19,6 @@ def fetch_all_data(cursor, query: str) -> List[Tuple]:
     except sqlite3.Error as e:
         print(e)
         return []
-
-def image_to_base64(img: Image) -> str:
-    """Convert a PIL Image to a base64 string."""
-    buffered = BytesIO()
-    img.save(buffered, format="PNG")
-    return base64.b64encode(buffered.getvalue()).decode('utf-8')
 
 def convert_and_scale_values(values_str: str) -> np.ndarray:
     """
@@ -98,7 +70,7 @@ def get_packet_informations_id(cursor, packet_data_id):
         """, (packet_data_id,))
     packet_informations_id = cursor.fetchone()
     
-    print(packet_informations_id)
+    #print(packet_informations_id)
     
     if packet_informations_id is not None:
         return packet_informations_id[0]
@@ -107,16 +79,13 @@ def get_packet_informations_id(cursor, packet_data_id):
         return "get_packet_informations_id Error"
 
 def main() -> None:
-    """Main function to process packet data and generate images."""
-    read_config_file()
+    db_file = read_config_file("INITIALISATION", "OutputDBFile")
 
-    # SQL statement for querying all data from Packet_Data table
-    sql_query_packet_data: str = "SELECT * FROM Packet_Data WHERE packet_data_id IN (SELECT packet_data_id FROM Packet_Informations WHERE treatment_progress = 0 ORDER BY timestamp_input_in_db ASC LIMIT 10)"
+    # SQL statement for querying data from Packet_Data table
+    sql_query_packet_data: str = "SELECT * FROM Packet_Data WHERE packet_data_id IN (SELECT packet_data_id FROM Packet_Informations WHERE treatment_progress = 0 ORDER BY timestamp_input_in_db ASC LIMIT 10)" 
     
-    # Create a database connection
-    connection: Optional[sqlite3.Connection] = create_connection()
+    connection: Optional[sqlite3.Connection] = create_connection(db_file) # Database connection
     
-
     if connection:
         cursor = connection.cursor()
         while True :
