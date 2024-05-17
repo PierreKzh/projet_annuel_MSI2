@@ -15,3 +15,12 @@ Pour la première version de notre projet nous le mettrons en place en suivant l
 ### Dossiers
 - **python_scripts** : Contient les différents blocs python
 - **stockage** : Contient les différents systèmes de stockage
+
+
+# todo
+clean db
+conf file
+liaison graphana
+package
+testé les modeles
+completer le readme (anglais + nv schema)

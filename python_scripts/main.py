@@ -1,5 +1,7 @@
 import subprocess
 import sys
+import threading
+import time
 
 def execute_python_script(path: str) -> int:
     """
@@ -25,32 +27,49 @@ def execute_python_script(path: str) -> int:
         return 1
     return 0
 
+def execute_with_delay(script_path: str, delay: int):
+    """
+    Executes a Python script after a specified delay.
+
+    Args:
+        script_path (str): The path to the Python script.
+        delay (int): The delay in seconds before executing the script.
+    """
+    time.sleep(delay)
+    exit_code = execute_python_script(script_path)
+    if exit_code != 0:
+        print(exit_code)
+
 def main():
     print("init.py")
     init_script_path = r"python_scripts\Initialisation\init.py"
     exit_code = execute_python_script(init_script_path)
     if exit_code != 0:
         print(exit_code)
+        return  # Exit if the initialization script fails
 
     print("Parse_packet.py")
     parse_script_path = r"python_scripts\parse_pcap_requests\Parse_packet.py"
-    exit_code = execute_python_script(parse_script_path)
-    if exit_code != 0:
-        print(exit_code)
+    parse_thread = threading.Thread(target=execute_python_script, args=(parse_script_path,))
+    parse_thread.start()
+    #time.sleep(5)
 
-    """print("Generate_image.py")
-    parse_script_path = r"python_scripts\generate_images\Generate_image.py"
-    exit_code = execute_python_script(parse_script_path)
-    if exit_code != 0:
-        print(exit_code)
+    print("Generate_image.py")
+    generate_image_script_path = r"python_scripts\generate_images\Generate_image.py"
+    generate_thread = threading.Thread(target=execute_with_delay, args=(generate_image_script_path, 5))
 
     print("Classify_image.py")
-    parse_script_path = r"python_scripts\classify_nature_of_images\Classify_image.py"
-    exit_code = execute_python_script(parse_script_path)
-    if exit_code != 0:
-        print(exit_code)"""
-    
+    classify_image_script_path = r"python_scripts\classify_nature_of_images\Classify_image.py"
+    classify_thread = threading.Thread(target=execute_with_delay, args=(classify_image_script_path, 5))
 
+    # Start the threads for Generate_image.py and Classify_image.py
+    generate_thread.start()
+    classify_thread.start()
+
+    # Wait for the threads to complete
+    parse_thread.join()
+    generate_thread.join()
+    classify_thread.join()
 
 if __name__ == "__main__":
     main()
