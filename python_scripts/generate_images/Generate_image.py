@@ -80,9 +80,10 @@ def get_packet_informations_id(cursor, packet_data_id):
 
 def main() -> None:
     db_file = read_config_file("INITIALISATION", "OutputDBFile")
+    traitement_size_block = read_config_file("GENERATE_IMAGE", "TraitementSizeBlock")
 
     # SQL statement for querying data from Packet_Data table
-    sql_query_packet_data: str = "SELECT * FROM Packet_Data WHERE packet_data_id IN (SELECT packet_data_id FROM Packet_Informations WHERE treatment_progress = 0 ORDER BY timestamp_input_in_db ASC LIMIT 10)" 
+    sql_query_packet_data: str = f"SELECT * FROM Packet_Data WHERE packet_data_id IN (SELECT packet_data_id FROM Packet_Informations WHERE treatment_progress = 0 ORDER BY timestamp_input_in_db ASC LIMIT {traitement_size_block})" 
     
     connection: Optional[sqlite3.Connection] = create_connection(db_file) # Database connection
     

@@ -17,7 +17,6 @@ def execute_python_script(path: str) -> int:
     try:
         # Execute the Python script using subprocess
         result = subprocess.run([sys.executable, path], check=True, text=True, capture_output=True)
-        print(f"Script executed successfully: {path}")
     except subprocess.CalledProcessError as e:
         print(f"An error occurred during the script execution at {path}.")
         print("Error code:", e.returncode)
@@ -72,14 +71,20 @@ def main():
     classify_image_script_path = r"python_scripts\classify_nature_of_images\Classify_image.py"
     classify_thread = threading.Thread(target=execute_with_delay, args=(classify_image_script_path, 5))
 
+    """print("Clean_db.py")
+    clean_db_script_path = r"python_scripts\clean_db\Clean_db.py"
+    clean_thread = threading.Thread(target=execute_with_delay, args=(clean_db_script_path, 5))"""
+
     # Start the threads for Generate_image.py and Classify_image.py
     generate_thread.start()
     classify_thread.start()
+    """clean_thread.start()"""
 
     # Wait for the threads to complete
     parse_thread.join()
     generate_thread.join()
     classify_thread.join()
+    """clean_thread.join()"""
 
 if __name__ == "__main__":
     main()
