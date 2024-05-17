@@ -43,7 +43,13 @@ def execute_with_delay(script_path: str, delay: int):
 
 def main():
     
-    os.remove("db.sqlite")
+    file_path = "db.sqlite"
+
+    if os.path.exists(file_path):
+        os.remove(file_path)
+        print(f"Le fichier '{file_path}' a été supprimé avec succès.")
+    else:
+        print(f"Le fichier '{file_path}' n'existe pas.")
 
     print("init.py")
     init_script_path = r"python_scripts\Initialisation\init.py"
