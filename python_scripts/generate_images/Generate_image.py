@@ -70,8 +70,6 @@ def get_packet_informations_id(cursor, packet_data_id):
         """, (packet_data_id,))
     packet_informations_id = cursor.fetchone()
     
-    #print(packet_informations_id)
-    
     if packet_informations_id is not None:
         return packet_informations_id[0]
     else:

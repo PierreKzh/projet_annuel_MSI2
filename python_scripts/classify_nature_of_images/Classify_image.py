@@ -82,9 +82,9 @@ def main() -> None:
     sql_query_packet_data: str = f"SELECT packet_informations_id, image_classification_id, image_b64 FROM Image_Classification WHERE packet_informations_id IN (SELECT packet_informations_id FROM Packet_Informations WHERE treatment_progress = 1 ORDER BY timestamp_input_in_db ASC LIMIT {traitement_size_block});"
     
     connection: Optional[sqlite3.Connection] = create_connection(db_file) # Database connection
-    cursor = connection.cursor()
-
+    
     if connection:
+        cursor = connection.cursor()
         while True :
             all_data: List[Tuple] = fetch_all_data(connection, sql_query_packet_data)
             for row in all_data:

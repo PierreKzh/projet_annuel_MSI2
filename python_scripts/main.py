@@ -61,7 +61,6 @@ def main():
     parse_script_path = r"python_scripts\parse_pcap_requests\Parse_packet.py"
     parse_thread = threading.Thread(target=execute_python_script, args=(parse_script_path,))
     parse_thread.start()
-    #time.sleep(5)
 
     print("Generate_image.py")
     generate_image_script_path = r"python_scripts\generate_images\Generate_image.py"
@@ -71,20 +70,20 @@ def main():
     classify_image_script_path = r"python_scripts\classify_nature_of_images\Classify_image.py"
     classify_thread = threading.Thread(target=execute_with_delay, args=(classify_image_script_path, 5))
 
-    """print("Clean_db.py")
+    print("Clean_db.py")
     clean_db_script_path = r"python_scripts\clean_db\Clean_db.py"
-    clean_thread = threading.Thread(target=execute_with_delay, args=(clean_db_script_path, 5))"""
+    clean_thread = threading.Thread(target=execute_with_delay, args=(clean_db_script_path, 5))
 
     # Start the threads for Generate_image.py and Classify_image.py
     generate_thread.start()
     classify_thread.start()
-    """clean_thread.start()"""
+    clean_thread.start()
 
     # Wait for the threads to complete
     parse_thread.join()
     generate_thread.join()
     classify_thread.join()
-    """clean_thread.join()"""
+    clean_thread.join()
 
 if __name__ == "__main__":
     main()
