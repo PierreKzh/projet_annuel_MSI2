@@ -41,36 +41,22 @@ def execute_with_delay(script_path: str, delay: int):
         print(exit_code)
 
 def main():
-    
-    file_path = "db.sqlite"
-
-    if os.path.exists(file_path):
-        os.remove(file_path)
-        print(f"Le fichier '{file_path}' a été supprimé avec succès.")
-    else:
-        print(f"Le fichier '{file_path}' n'existe pas.")
-
-    print("init.py")
     init_script_path = r"python_scripts\Initialisation\init.py"
     exit_code = execute_python_script(init_script_path)
     if exit_code != 0:
         print(exit_code)
         return  # Exit if the initialization script fails
 
-    print("Parse_packet.py")
     parse_script_path = r"python_scripts\parse_pcap_requests\Parse_packet.py"
     parse_thread = threading.Thread(target=execute_python_script, args=(parse_script_path,))
     parse_thread.start()
 
-    print("Generate_image.py")
     generate_image_script_path = r"python_scripts\generate_images\Generate_image.py"
     generate_thread = threading.Thread(target=execute_with_delay, args=(generate_image_script_path, 5))
 
-    print("Classify_image.py")
     classify_image_script_path = r"python_scripts\classify_nature_of_images\Classify_image.py"
     classify_thread = threading.Thread(target=execute_with_delay, args=(classify_image_script_path, 5))
 
-    print("Clean_db.py")
     clean_db_script_path = r"python_scripts\clean_db\Clean_db.py"
     clean_thread = threading.Thread(target=execute_with_delay, args=(clean_db_script_path, 5))
 
@@ -78,6 +64,8 @@ def main():
     generate_thread.start()
     classify_thread.start()
     clean_thread.start()
+
+    print("AINIDS is running")
 
     # Wait for the threads to complete
     parse_thread.join()

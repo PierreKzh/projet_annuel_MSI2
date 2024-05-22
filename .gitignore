@@ -3,4 +3,5 @@
 *.pcap
 *.zip
 *.csv
-*.png
+pyvenv/
+activate/
