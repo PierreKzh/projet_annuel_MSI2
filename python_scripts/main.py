@@ -41,23 +41,26 @@ def execute_with_delay(script_path: str, delay: int):
         print(exit_code)
 
 def main():
-    init_script_path = r"python_scripts\Initialisation\init.py"
+    # Get config file path
+    current_folder = os.path.dirname(os.path.abspath(__file__))
+
+    init_script_path = os.path.join(current_folder, r"Initialisation/Init.py")
     exit_code = execute_python_script(init_script_path)
     if exit_code != 0:
         print(exit_code)
         return  # Exit if the initialization script fails
 
-    parse_script_path = r"python_scripts\parse_pcap_requests\Parse_packet.py"
+    parse_script_path = os.path.join(current_folder, r"parse_pcap_requests/Parse_packet.py")
     parse_thread = threading.Thread(target=execute_python_script, args=(parse_script_path,))
     parse_thread.start()
 
-    generate_image_script_path = r"python_scripts\generate_images\Generate_image.py"
+    generate_image_script_path = os.path.join(current_folder, r"generate_images/Generate_image.py")
     generate_thread = threading.Thread(target=execute_with_delay, args=(generate_image_script_path, 5))
 
-    classify_image_script_path = r"python_scripts\classify_nature_of_images\Classify_image.py"
+    classify_image_script_path = os.path.join(current_folder, r"classify_nature_of_images/Classify_image.py")
     classify_thread = threading.Thread(target=execute_with_delay, args=(classify_image_script_path, 5))
 
-    clean_db_script_path = r"python_scripts\clean_db\Clean_db.py"
+    clean_db_script_path = os.path.join(current_folder, r"clean_db/Clean_db.py")
     clean_thread = threading.Thread(target=execute_with_delay, args=(clean_db_script_path, 5))
 
     # Start the threads for Generate_image.py and Classify_image.py
