@@ -41,6 +41,13 @@ def execute_with_delay(script_path: str, delay: int):
         print(exit_code)
 
 def main():
+    # Check if run as sudo, only for linux. Needed for scapy listening
+    try:
+        if os.geteuid() != 0:
+            exit("Run this script with root privileges.\n")
+    except AttributeError:
+        pass
+
     # Get config file path
     current_folder = os.path.dirname(os.path.abspath(__file__))
 
