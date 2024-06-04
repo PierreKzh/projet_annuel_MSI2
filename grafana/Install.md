@@ -1,4 +1,4 @@
-# Install and configuration of grafana with ainids on Ubuntu(22.04)
+# Install and configuration of grafana with AINIDS on Ubuntu(22.04)
 
 ## Install
 ### Install package

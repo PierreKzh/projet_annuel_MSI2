@@ -1,23 +1,18 @@
 # projet_annuel_MSI2
-Ce repo contient le développement de notre projet annuel, réalisé dans le cadre de notre deuxième année de master en sécurité informatique.
+This repo contains the development of our annual project, carried out as part of our second year of a master's degree in IT security.
 
 ## AI NIDS
-Le but de ce projet annuel est de créer un NIDS (Network Intrusion Detection System) basé sur l'IA (Intelligence Artificielle).  
-Ce projet prendra la forme d'un micro service, qui pourra être installé facilement sur une machine linux.
+The goal of this annual project is to create a NIDS (Network Intrusion Detection System) based on AI (Artificial Intelligence).  
+This project will take the form of a microservice, which can be easily installed on a Linux machine.
 
 ### Dataset
-Pour l'entrainement du modèle, nous nous sommes basé sur ce dataset : [network-packet-flow-header-payload](https://huggingface.co/datasets/rdpahalavan/network-packet-flow-header-payload)
+For training the model, we based ourselves on this dataset : [network-packet-flow-header-payload](https://huggingface.co/datasets/rdpahalavan/network-packet-flow-header-payload)
 
 ### Architecture
-Pour la première version de notre projet nous le mettrons en place en suivant le schéma ci-dessous
+We decided to create the following architecture:  
 ![schema_architecture_v2](https://github.com/PierreKzh/projet_annuel_MSI2/blob/main/img/schema_architecture_v2.png)
 
-### Dossiers
-- **python_scripts** : Contient les différents blocs python
-- **models** : Contient les différents modèles d'IA
-
-
-# todo
-liaison graphana
-package
-completer le readme (anglais + nv schema)
+### Folders
+- **python_scripts** : Contains the different python blocks as well as the configuration file
+- **models** : Contains different epochs of the model, more or less efficient
+- **grafana** : Contains the procedure to follow to install grafana in addition to the system
