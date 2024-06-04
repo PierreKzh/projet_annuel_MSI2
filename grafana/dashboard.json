@@ -1,0 +1,157 @@
+{
+    "annotations": {
+      "list": [
+        {
+          "builtIn": 1,
+          "datasource": {
+            "type": "grafana",
+            "uid": "-- Grafana --"
+          },
+          "enable": true,
+          "hide": true,
+          "iconColor": "rgba(0, 211, 255, 1)",
+          "name": "Annotations & Alerts",
+          "type": "dashboard"
+        }
+      ]
+    },
+    "editable": true,
+    "fiscalYearStartMonth": 0,
+    "graphTooltip": 0,
+    "id": 3,
+    "links": [],
+    "panels": [
+      {
+        "datasource": {
+          "type": "frser-sqlite-datasource",
+          "uid": "bdn71azwf1hxce"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisBorderShow": false,
+              "axisCenteredZero": false,
+              "axisColorMode": "text",
+              "axisLabel": "",
+              "axisPlacement": "auto",
+              "barAlignment": 0,
+              "drawStyle": "line",
+              "fillOpacity": 0,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              },
+              "insertNulls": false,
+              "lineInterpolation": "linear",
+              "lineWidth": 1,
+              "pointSize": 5,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "showPoints": "auto",
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            },
+            "fieldMinMax": false,
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            }
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 23,
+          "w": 24,
+          "x": 0,
+          "y": 0
+        },
+        "id": 1,
+        "options": {
+          "legend": {
+            "calcs": [],
+            "displayMode": "list",
+            "placement": "bottom",
+            "showLegend": true
+          },
+          "tooltip": {
+            "maxHeight": 600,
+            "mode": "single",
+            "sort": "none"
+          }
+        },
+        "pluginVersion": "11.0.0",
+        "targets": [
+          {
+            "datasource": {
+              "type": "frser-sqlite-datasource",
+              "uid": "bdn71azwf1hxce"
+            },
+            "queryText": "SELECT CAST(strftime(timestamp_capture_packet) as INTEGER) as time, count(*) as Normal from Packet_Informations INNER JOIN Image_Classification on Packet_Informations.packet_informations_id = Image_Classification.packet_informations_id INNER JOIN Packet_Data on Packet_Data.packet_data_id = Packet_informations.packet_data_id where classification = 'Normal' group by time order by time",
+            "queryType": "table",
+            "rawQueryText": "SELECT CAST(strftime(timestamp_capture_packet) as INTEGER) as time, count(*) as Normal from Packet_Informations INNER JOIN Image_Classification on Packet_Informations.packet_informations_id = Image_Classification.packet_informations_id INNER JOIN Packet_Data on Packet_Data.packet_data_id = Packet_informations.packet_data_id where classification = 'Normal' group by time order by time",
+            "refId": "A",
+            "timeColumns": [
+              "time",
+              "ts"
+            ]
+          },
+          {
+            "datasource": {
+              "type": "frser-sqlite-datasource",
+              "uid": "bdn71azwf1hxce"
+            },
+            "hide": false,
+            "queryText": "SELECT CAST(strftime(timestamp_capture_packet) as INTEGER) as time, count(*) as Abnormal from Packet_Informations INNER JOIN Image_Classification on Packet_Informations.packet_informations_id = Image_Classification.packet_informations_id INNER JOIN Packet_Data on Packet_Data.packet_data_id = Packet_informations.packet_data_id where classification = 'Abnormal' group by time order by time",
+            "queryType": "table",
+            "rawQueryText": "SELECT CAST(strftime(timestamp_capture_packet) as INTEGER) as time, count(*) as Abnormal from Packet_Informations INNER JOIN Image_Classification on Packet_Informations.packet_informations_id = Image_Classification.packet_informations_id INNER JOIN Packet_Data on Packet_Data.packet_data_id = Packet_informations.packet_data_id where classification = 'Abnormal' group by time order by time",
+            "refId": "B",
+            "timeColumns": [
+              "time",
+              "ts"
+            ]
+          }
+        ],
+        "title": "Classification of requests based on time",
+        "type": "timeseries"
+      }
+    ],
+    "refresh": "30s",
+    "schemaVersion": 39,
+    "tags": [],
+    "templating": {
+      "list": []
+    },
+    "time": {
+      "from": "2024-06-03T18:57:17.251Z",
+      "to": "2024-06-03T19:32:45.054Z"
+    },
+    "timeRangeUpdatedDuringEditOrView": false,
+    "timepicker": {},
+    "timezone": "",
+    "title": "Dashboard-Classification_of_requests_based_on_time",
+    "uid": "bdn8eyixd3uv4b",
+    "version": 2,
+    "weekStart": ""
+  }
