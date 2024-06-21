@@ -1,157 +1,388 @@
 {
-    "annotations": {
-      "list": [
-        {
-          "builtIn": 1,
-          "datasource": {
-            "type": "grafana",
-            "uid": "-- Grafana --"
-          },
-          "enable": true,
-          "hide": true,
-          "iconColor": "rgba(0, 211, 255, 1)",
-          "name": "Annotations & Alerts",
-          "type": "dashboard"
-        }
-      ]
-    },
-    "editable": true,
-    "fiscalYearStartMonth": 0,
-    "graphTooltip": 0,
-    "id": 3,
-    "links": [],
-    "panels": [
+  "annotations": {
+    "list": [
       {
+        "builtIn": 1,
         "datasource": {
-          "type": "frser-sqlite-datasource",
-          "uid": "bdn71azwf1hxce"
+          "type": "grafana",
+          "uid": "-- Grafana --"
         },
-        "fieldConfig": {
-          "defaults": {
-            "color": {
-              "mode": "palette-classic"
-            },
-            "custom": {
-              "axisBorderShow": false,
-              "axisCenteredZero": false,
-              "axisColorMode": "text",
-              "axisLabel": "",
-              "axisPlacement": "auto",
-              "barAlignment": 0,
-              "drawStyle": "line",
-              "fillOpacity": 0,
-              "gradientMode": "none",
-              "hideFrom": {
-                "legend": false,
-                "tooltip": false,
-                "viz": false
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": 3,
+  "links": [],
+  "panels": [
+    {
+      "datasource": {
+        "type": "frser-sqlite-datasource",
+        "uid": "bdn71azwf1hxce"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "fieldMinMax": false,
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
               },
-              "insertNulls": false,
-              "lineInterpolation": "linear",
-              "lineWidth": 1,
-              "pointSize": 5,
-              "scaleDistribution": {
-                "type": "linear"
+              {
+                "color": "orange",
+                "value": 70
               },
-              "showPoints": "auto",
-              "spanNulls": false,
-              "stacking": {
-                "group": "A",
-                "mode": "none"
-              },
-              "thresholdsStyle": {
-                "mode": "off"
+              {
+                "color": "red",
+                "value": 85
               }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 0,
+        "y": 0
+      },
+      "id": 4,
+      "options": {
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto"
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "frser-sqlite-datasource",
+            "uid": "bdn71azwf1hxce"
+          },
+          "queryText": "SELECT 100 * (SELECT COUNT(treatment_progress) FROM Packet_Informations WHERE treatment_progress = '0') / count(treatment_progress) From Packet_Informations\r\n",
+          "queryType": "table",
+          "rawQueryText": "SELECT 100 * (SELECT COUNT(treatment_progress) FROM Packet_Informations WHERE treatment_progress = '0') / count(treatment_progress) From Packet_Informations\r\n",
+          "refId": "A",
+          "timeColumns": [
+            "time",
+            "ts"
+          ]
+        }
+      ],
+      "title": " percentage of packets at processing 0",
+      "transparent": true,
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "frser-sqlite-datasource",
+        "uid": "bdn71azwf1hxce"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "fieldMinMax": false,
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 85
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 8,
+        "y": 0
+      },
+      "id": 3,
+      "options": {
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto"
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "frser-sqlite-datasource",
+            "uid": "bdn71azwf1hxce"
+          },
+          "queryText": "SELECT 100 * (SELECT COUNT(treatment_progress) FROM Packet_Informations WHERE treatment_progress = '1') / count(treatment_progress) From Packet_Informations\r\n",
+          "queryType": "table",
+          "rawQueryText": "SELECT 100 * (SELECT COUNT(treatment_progress) FROM Packet_Informations WHERE treatment_progress = '1') / count(treatment_progress) From Packet_Informations\r\n",
+          "refId": "A",
+          "timeColumns": [
+            "time",
+            "ts"
+          ]
+        }
+      ],
+      "title": " percentage of packets at processing 1",
+      "transparent": true,
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "frser-sqlite-datasource",
+        "uid": "bdn71azwf1hxce"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "fieldMinMax": false,
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 85
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 16,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto"
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "frser-sqlite-datasource",
+            "uid": "bdn71azwf1hxce"
+          },
+          "queryText": "SELECT 100 * (SELECT COUNT(treatment_progress) FROM Packet_Informations WHERE treatment_progress = '2') / count(treatment_progress) From Packet_Informations\r\n",
+          "queryType": "table",
+          "rawQueryText": "SELECT 100 * (SELECT COUNT(treatment_progress) FROM Packet_Informations WHERE treatment_progress = '2') / count(treatment_progress) From Packet_Informations\r\n",
+          "refId": "A",
+          "timeColumns": [
+            "time",
+            "ts"
+          ]
+        }
+      ],
+      "title": " percentage of packets at processing 2",
+      "transparent": true,
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "frser-sqlite-datasource",
+        "uid": "bdn71azwf1hxce"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
             },
-            "fieldMinMax": false,
-            "mappings": [],
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {
-                  "color": "green",
-                  "value": null
-                },
-                {
-                  "color": "red",
-                  "value": 80
-                }
-              ]
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
             }
           },
-          "overrides": []
-        },
-        "gridPos": {
-          "h": 23,
-          "w": 24,
-          "x": 0,
-          "y": 0
-        },
-        "id": 1,
-        "options": {
-          "legend": {
-            "calcs": [],
-            "displayMode": "list",
-            "placement": "bottom",
-            "showLegend": true
-          },
-          "tooltip": {
-            "maxHeight": 600,
-            "mode": "single",
-            "sort": "none"
-          }
-        },
-        "pluginVersion": "11.0.0",
-        "targets": [
-          {
-            "datasource": {
-              "type": "frser-sqlite-datasource",
-              "uid": "bdn71azwf1hxce"
-            },
-            "queryText": "SELECT CAST(strftime(timestamp_capture_packet) as INTEGER) as time, count(*) as Normal from Packet_Informations INNER JOIN Image_Classification on Packet_Informations.packet_informations_id = Image_Classification.packet_informations_id INNER JOIN Packet_Data on Packet_Data.packet_data_id = Packet_informations.packet_data_id where classification = 'Normal' group by time order by time",
-            "queryType": "table",
-            "rawQueryText": "SELECT CAST(strftime(timestamp_capture_packet) as INTEGER) as time, count(*) as Normal from Packet_Informations INNER JOIN Image_Classification on Packet_Informations.packet_informations_id = Image_Classification.packet_informations_id INNER JOIN Packet_Data on Packet_Data.packet_data_id = Packet_informations.packet_data_id where classification = 'Normal' group by time order by time",
-            "refId": "A",
-            "timeColumns": [
-              "time",
-              "ts"
-            ]
-          },
-          {
-            "datasource": {
-              "type": "frser-sqlite-datasource",
-              "uid": "bdn71azwf1hxce"
-            },
-            "hide": false,
-            "queryText": "SELECT CAST(strftime(timestamp_capture_packet) as INTEGER) as time, count(*) as Abnormal from Packet_Informations INNER JOIN Image_Classification on Packet_Informations.packet_informations_id = Image_Classification.packet_informations_id INNER JOIN Packet_Data on Packet_Data.packet_data_id = Packet_informations.packet_data_id where classification = 'Abnormal' group by time order by time",
-            "queryType": "table",
-            "rawQueryText": "SELECT CAST(strftime(timestamp_capture_packet) as INTEGER) as time, count(*) as Abnormal from Packet_Informations INNER JOIN Image_Classification on Packet_Informations.packet_informations_id = Image_Classification.packet_informations_id INNER JOIN Packet_Data on Packet_Data.packet_data_id = Packet_informations.packet_data_id where classification = 'Abnormal' group by time order by time",
-            "refId": "B",
-            "timeColumns": [
-              "time",
-              "ts"
+          "fieldMinMax": false,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
             ]
           }
-        ],
-        "title": "Classification of requests based on time",
-        "type": "timeseries"
-      }
-    ],
-    "refresh": "30s",
-    "schemaVersion": 39,
-    "tags": [],
-    "templating": {
-      "list": []
-    },
-    "time": {
-      "from": "2024-06-03T18:57:17.251Z",
-      "to": "2024-06-03T19:32:45.054Z"
-    },
-    "timeRangeUpdatedDuringEditOrView": false,
-    "timepicker": {},
-    "timezone": "",
-    "title": "Dashboard-Classification_of_requests_based_on_time",
-    "uid": "bdn8eyixd3uv4b",
-    "version": 2,
-    "weekStart": ""
-  }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 19,
+        "w": 24,
+        "x": 0,
+        "y": 4
+      },
+      "id": 1,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "maxHeight": 600,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "frser-sqlite-datasource",
+            "uid": "bdn71azwf1hxce"
+          },
+          "queryText": "SELECT CAST(strftime(timestamp_capture_packet) as INTEGER) as time, count(*) as Normal from Packet_Informations INNER JOIN Image_Classification on Packet_Informations.packet_informations_id = Image_Classification.packet_informations_id INNER JOIN Packet_Data on Packet_Data.packet_data_id = Packet_informations.packet_data_id where classification = 'Normal' group by time order by time",
+          "queryType": "table",
+          "rawQueryText": "SELECT CAST(strftime(timestamp_capture_packet) as INTEGER) as time, count(*) as Normal from Packet_Informations INNER JOIN Image_Classification on Packet_Informations.packet_informations_id = Image_Classification.packet_informations_id INNER JOIN Packet_Data on Packet_Data.packet_data_id = Packet_informations.packet_data_id where classification = 'Normal' group by time order by time",
+          "refId": "A",
+          "timeColumns": [
+            "time",
+            "ts"
+          ]
+        },
+        {
+          "datasource": {
+            "type": "frser-sqlite-datasource",
+            "uid": "bdn71azwf1hxce"
+          },
+          "hide": false,
+          "queryText": "SELECT CAST(strftime(timestamp_capture_packet) as INTEGER) as time, count(*) as Abnormal from Packet_Informations INNER JOIN Image_Classification on Packet_Informations.packet_informations_id = Image_Classification.packet_informations_id INNER JOIN Packet_Data on Packet_Data.packet_data_id = Packet_informations.packet_data_id where classification = 'Abnormal' group by time order by time",
+          "queryType": "table",
+          "rawQueryText": "SELECT CAST(strftime(timestamp_capture_packet) as INTEGER) as time, count(*) as Abnormal from Packet_Informations INNER JOIN Image_Classification on Packet_Informations.packet_informations_id = Image_Classification.packet_informations_id INNER JOIN Packet_Data on Packet_Data.packet_data_id = Packet_informations.packet_data_id where classification = 'Abnormal' group by time order by time",
+          "refId": "B",
+          "timeColumns": [
+            "time",
+            "ts"
+          ]
+        }
+      ],
+      "title": "Classification of requests based on time",
+      "type": "timeseries"
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 39,
+  "tags": [],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-30d",
+    "to": "now"
+  },
+  "timeRangeUpdatedDuringEditOrView": false,
+  "timepicker": {},
+  "timezone": "",
+  "title": "Dashboard-Classification_of_requests_based_on_time",
+  "uid": "bdn8eyixd3uv4b",
+  "version": 3,
+  "weekStart": ""
+}
