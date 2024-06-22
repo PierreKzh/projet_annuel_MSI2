@@ -181,14 +181,14 @@ def write_dict_to_sqli(table_name: str, table_dict: dict) -> list:
             else:
                 sql_payload += f"{value});"
         
-        execute_sql_query(cursor, sql_payload)
+        sql_return_code = execute_sql_query(cursor, sql_payload)
         id = cursor.lastrowid
         ids.append(id)
 
     connection.commit()
     connection.close()
 
-    return ids
+    return ids, sql_return_code
 
 def read_config_file() -> None:
     """
@@ -266,9 +266,10 @@ def packets_processing() -> None:
 
     if valid_packets_counter != 0:
         parse_flow_information() # calculate an average from packets
-        ids = write_dict_to_sqli("Packet_Data", packet_data_dict)
+        ids, sql_return_code = write_dict_to_sqli("Packet_Data", packet_data_dict)
         fill_packet_informations(ids) # same data for each packets
-        write_dict_to_sqli("Packet_Informations", packet_informations_dict)
+        if sql_return_code != 1: # if no error in previous sql query
+            write_dict_to_sqli("Packet_Informations", packet_informations_dict)
 
 def main() -> None:
     """
