@@ -50,24 +50,33 @@ def process_data(packet_data: str, packet_informations_id: int, cursor, ) -> Non
     img: Image = Image.fromarray(image_data, 'L')
     img_base64: str = image_to_base64(img)
 
-    cursor.execute("""
-        INSERT INTO Image_Classification (packet_informations_id, image_b64, classification)
-        VALUES (?, ?, ?)
-        """, (packet_informations_id, img_base64, ''))
+    try:
+        cursor.execute("""
+            INSERT INTO Image_Classification (packet_informations_id, image_b64, classification)
+            VALUES (?, ?, ?)
+            """, (packet_informations_id, img_base64, ''))
+    except sqlite3.Error as e:
+        print(f"Error inserting generated image for packet_informations_id {packet_informations_id}: {e}")
     
 def update_treatement_progress(cursor, packet_data_id):
-    cursor.execute("""
-        UPDATE Packet_Informations
-        SET treatment_progress = ?
-        WHERE packet_data_id = ?
-        """, (1, packet_data_id))
+    try:
+        cursor.execute("""
+            UPDATE Packet_Informations
+            SET treatment_progress = ?
+            WHERE packet_data_id = ?
+            """, (1, packet_data_id))
+    except sqlite3.Error as e:
+        print(f"Error updating treatment_progress for packet_data_id {packet_data_id}: {e}")
 
 def get_packet_informations_id(cursor, packet_data_id):
-    cursor.execute("""
-        SELECT packet_informations_id
-        FROM Packet_Informations
-        WHERE packet_data_id = ?
-        """, (packet_data_id,))
+    try:
+        cursor.execute("""
+            SELECT packet_informations_id
+            FROM Packet_Informations
+            WHERE packet_data_id = ?
+            """, (packet_data_id,))
+    except sqlite3.Error as e:
+        print(f"Error getting packet_informations_id for packet_data_id {packet_data_id}: {e}")
     packet_informations_id = cursor.fetchone()
     
     if packet_informations_id is not None:

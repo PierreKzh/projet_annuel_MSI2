@@ -60,11 +60,14 @@ def update_classification(cursor, image_classification_id: int, classification: 
         print(f"Error updating classification for image_classification_id {image_classification_id}: {e}")
 
 def update_treatement_progress(cursor, packet_informations_id):
-    cursor.execute("""
-        UPDATE Packet_Informations
-        SET treatment_progress = ?
-        WHERE packet_informations_id = ?
-        """, (2, packet_informations_id))
+    try:
+        cursor.execute("""
+            UPDATE Packet_Informations
+            SET treatment_progress = ?
+            WHERE packet_informations_id = ?
+            """, (2, packet_informations_id))
+    except sqlite3.Error as e:
+        print(f"Error updating treatment_progress for packet_informations_id {packet_informations_id}: {e}")
 
 def main() -> None:
     db_file = read_config_file("INITIALISATION", "OutputDBFile")
