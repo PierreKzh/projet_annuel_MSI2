@@ -22,10 +22,7 @@
   "links": [],
   "panels": [
     {
-      "datasource": {
-        "type": "frser-sqlite-datasource",
-        "uid": "bdn71azwf1hxce"
-      },
+      "datasource": {},
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -99,10 +96,7 @@
       "type": "gauge"
     },
     {
-      "datasource": {
-        "type": "frser-sqlite-datasource",
-        "uid": "bdn71azwf1hxce"
-      },
+      "datasource": {},
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -176,10 +170,7 @@
       "type": "gauge"
     },
     {
-      "datasource": {
-        "type": "frser-sqlite-datasource",
-        "uid": "bdn71azwf1hxce"
-      },
+      "datasource": {},
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -193,7 +184,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "red",
                 "value": null
               },
               {
@@ -201,7 +192,7 @@
                 "value": 70
               },
               {
-                "color": "red",
+                "color": "green",
                 "value": 85
               }
             ]
@@ -253,10 +244,7 @@
       "type": "gauge"
     },
     {
-      "datasource": {
-        "type": "frser-sqlite-datasource",
-        "uid": "bdn71azwf1hxce"
-      },
+      "datasource": {},
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -382,7 +370,7 @@
   "timepicker": {},
   "timezone": "",
   "title": "Dashboard-Classification_of_requests_based_on_time",
-  "uid": "bdn8eyixd3uv4b",
-  "version": 3,
+  "uid": "bdn8eyixd3uv8f",
+  "version": 1,
   "weekStart": ""
 }
