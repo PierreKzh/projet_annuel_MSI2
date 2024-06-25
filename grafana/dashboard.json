@@ -91,7 +91,7 @@
           ]
         }
       ],
-      "title": " percentage of packets at processing 0",
+      "title": "percentage of packets waiting to be converted",
       "transparent": true,
       "type": "gauge"
     },
@@ -165,7 +165,7 @@
           ]
         }
       ],
-      "title": " percentage of packets at processing 1",
+      "title": "percentage of packets waiting to be classified",
       "transparent": true,
       "type": "gauge"
     },
@@ -239,7 +239,7 @@
           ]
         }
       ],
-      "title": " percentage of packets at processing 2",
+      "title": "percentage of packets processed",
       "transparent": true,
       "type": "gauge"
     },
@@ -371,6 +371,6 @@
   "timezone": "",
   "title": "Dashboard-Classification_of_requests_based_on_time",
   "uid": "bdn8eyixd3uv8f",
-  "version": 1,
+  "version": 3,
   "weekStart": ""
 }
