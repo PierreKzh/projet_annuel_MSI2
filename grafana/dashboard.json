@@ -301,7 +301,7 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 19,
+        "h": 10,
         "w": 24,
         "x": 0,
         "y": 4
@@ -354,16 +354,119 @@
       ],
       "title": "Classification of requests based on time",
       "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "frser-sqlite-datasource",
+        "uid": "fdpggchayanlsf"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "bars",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 6,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "fieldMinMax": false,
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 14
+      },
+      "id": 5,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "maxHeight": 600,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "frser-sqlite-datasource",
+            "uid": "fdpggchayanlsf"
+          },
+          "hide": false,
+          "queryText": "SELECT \n    Normal.time,\n    (COALESCE(Abnormal.count, 0) - Normal.count) AS Difference\nFROM \n    (SELECT \n         CAST(strftime(timestamp_capture_packet) as INTEGER) as time, \n         COUNT(*) as count \n     FROM \n         Packet_Informations \n     INNER JOIN \n         Image_Classification \n     ON \n         Packet_Informations.packet_informations_id = Image_Classification.packet_informations_id \n     INNER JOIN \n         Packet_Data \n     ON \n         Packet_Data.packet_data_id = Packet_informations.packet_data_id \n     WHERE \n         classification = 'Normal' \n     GROUP BY \n         time \n     ORDER BY \n         time) AS Normal\nLEFT JOIN \n    (SELECT \n         CAST(strftime(timestamp_capture_packet) as INTEGER) as time, \n         COUNT(*) as count \n     FROM \n         Packet_Informations \n     INNER JOIN \n         Image_Classification \n     ON \n         Packet_Informations.packet_informations_id = Image_Classification.packet_informations_id \n     INNER JOIN \n         Packet_Data \n     ON \n         Packet_Data.packet_data_id = Packet_informations.packet_data_id \n     WHERE \n         classification = 'Abnormal' \n     GROUP BY \n         time \n     ORDER BY \n         time) AS Abnormal\nON \n    Normal.time = Abnormal.time\n",
+          "queryType": "table",
+          "rawQueryText": "SELECT \n    Normal.time,\n    (COALESCE(Abnormal.count, 0) - Normal.count) AS Difference\nFROM \n    (SELECT \n         CAST(strftime(timestamp_capture_packet) as INTEGER) as time, \n         COUNT(*) as count \n     FROM \n         Packet_Informations \n     INNER JOIN \n         Image_Classification \n     ON \n         Packet_Informations.packet_informations_id = Image_Classification.packet_informations_id \n     INNER JOIN \n         Packet_Data \n     ON \n         Packet_Data.packet_data_id = Packet_informations.packet_data_id \n     WHERE \n         classification = 'Normal' \n     GROUP BY \n         time \n     ORDER BY \n         time) AS Normal\nLEFT JOIN \n    (SELECT \n         CAST(strftime(timestamp_capture_packet) as INTEGER) as time, \n         COUNT(*) as count \n     FROM \n         Packet_Informations \n     INNER JOIN \n         Image_Classification \n     ON \n         Packet_Informations.packet_informations_id = Image_Classification.packet_informations_id \n     INNER JOIN \n         Packet_Data \n     ON \n         Packet_Data.packet_data_id = Packet_informations.packet_data_id \n     WHERE \n         classification = 'Abnormal' \n     GROUP BY \n         time \n     ORDER BY \n         time) AS Abnormal\nON \n    Normal.time = Abnormal.time\n",
+          "refId": "C",
+          "timeColumns": [
+            "time",
+            "ts"
+          ]
+        }
+      ],
+      "title": "Difference between Abnormal and Normal packets based on time",
+      "type": "timeseries"
     }
   ],
-  "refresh": "30s",
+  "refresh": "5s",
   "schemaVersion": 39,
   "tags": [],
   "templating": {
     "list": []
   },
   "time": {
-    "from": "now-30d",
+    "from": "now-15m",
     "to": "now"
   },
   "timeRangeUpdatedDuringEditOrView": false,
@@ -371,6 +474,6 @@
   "timezone": "",
   "title": "Dashboard-Classification_of_requests_based_on_time",
   "uid": "bdn8eyixd3uv8f",
-  "version": 3,
+  "version": 4,
   "weekStart": ""
 }
