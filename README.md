@@ -16,3 +16,6 @@ We decided to create the following architecture:
 - **python_scripts** : Contains the different python blocks as well as the configuration file
 - **models** : Contains different epochs of the model, more or less efficient
 - **grafana** : Contains the procedure to follow to install grafana in addition to the system
+
+### Exemple
+![grafana_dashboard_exemple](https://github.com/PierreKzh/projet_annuel_MSI2/blob/main/img/grafana_dashboard_exemple.png)
